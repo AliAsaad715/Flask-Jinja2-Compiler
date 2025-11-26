@@ -1,9 +1,9 @@
 package AST;
 
-public class FloatValue extends Value {
+public class FloatDeclaration extends Declaration {
     float value;
 
-    public FloatValue(float value) {
+    public FloatDeclaration(float value) {
         this.value = value;
     }
 

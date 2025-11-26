@@ -1,9 +1,9 @@
 package AST;
 
-public class IntValue extends Value {
+public class IntDeclaration extends Declaration {
     int value;
 
-    public IntValue(int value) {
+    public IntDeclaration(int value) {
         this.value = value;
     }
 

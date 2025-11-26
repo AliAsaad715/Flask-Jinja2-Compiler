@@ -1,4 +1,7 @@
 package Visitor;
 
-public class FlaskJinja2Visitor {
+import antlr.PythonParserBaseVisitor;
+
+public class FlaskJinja2Visitor extends PythonParserBaseVisitor {
+
 }
