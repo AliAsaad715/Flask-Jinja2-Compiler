@@ -1,17 +1,27 @@
 package app;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-public class Main {
-    public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.println("Hello and welcome!");
+import AST.Program;
+import Visitor.FlaskJinja2Visitor;
+import antlr.PythonLexer;
+import antlr.PythonParser;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTree;
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
-        }
+import java.io.IOException;
+
+import static org.antlr.v4.runtime.CharStreams.fromFileName;
+
+public class Main {
+    public static void main(String[] args) throws IOException {
+        String source = "Tests/test_py.txt";
+        CharStream charStream = fromFileName(source);
+        PythonLexer lexer = new PythonLexer(charStream);
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        PythonParser parser = new PythonParser(tokens);
+        ParseTree ast = parser.program();
+        FlaskJinja2Visitor visitor = new FlaskJinja2Visitor();
+        Program program = (Program) visitor.visit(ast);
+        System.out.println(program);
     }
 }

@@ -20,7 +20,7 @@ public class PythonLexer extends Lexer {
 		FROM=1, IMPORT=2, FLASK=3, FLASK_LIBRARY=4, DEFINETION=5, COLON=6, RETURN=7, 
 		RUN=8, EQUAL=9, OPEN_B=10, CLOSE_B=11, APP_NAME=12, DECORATOR=13, DOT=14, 
 		ROUTE=15, SINGLE_QUOTES=16, ID=17, INT_VALUE=18, WS=19, NEWLINE=20, SLASH=21, 
-		STRING_TEXT=22, STRING_ESCAPE=23, STRING_END=24;
+		STRING_VALUE=22, STRING_ESCAPE=23, STRING_END=24;
 	public static final int
 		STRING_MODE=1;
 	public static String[] channelNames = {
@@ -36,7 +36,7 @@ public class PythonLexer extends Lexer {
 			"FROM", "IMPORT", "FLASK", "FLASK_LIBRARY", "DEFINETION", "COLON", "RETURN", 
 			"RUN", "EQUAL", "OPEN_B", "CLOSE_B", "APP_NAME", "DECORATOR", "DOT", 
 			"ROUTE", "SINGLE_QUOTES", "ID", "INT_VALUE", "WS", "NEWLINE", "SLASH", 
-			"STRING_TEXT", "STRING_ESCAPE", "STRING_END"
+			"STRING_VALUE", "STRING_ESCAPE", "STRING_END"
 		};
 	}
 	public static final String[] ruleNames = makeRuleNames();
@@ -54,7 +54,7 @@ public class PythonLexer extends Lexer {
 			null, "FROM", "IMPORT", "FLASK", "FLASK_LIBRARY", "DEFINETION", "COLON", 
 			"RETURN", "RUN", "EQUAL", "OPEN_B", "CLOSE_B", "APP_NAME", "DECORATOR", 
 			"DOT", "ROUTE", "SINGLE_QUOTES", "ID", "INT_VALUE", "WS", "NEWLINE", 
-			"SLASH", "STRING_TEXT", "STRING_ESCAPE", "STRING_END"
+			"SLASH", "STRING_VALUE", "STRING_ESCAPE", "STRING_END"
 		};
 	}
 	private static final String[] _SYMBOLIC_NAMES = makeSymbolicNames();

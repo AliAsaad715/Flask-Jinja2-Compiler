@@ -32,12 +32,33 @@ public interface PythonParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitLibrary(PythonParser.LibraryContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code App_Initialize}
-	 * labeled alternative in {@link PythonParser#app_initialization}.
+	 * Visit a parse tree produced by the {@code Decl}
+	 * labeled alternative in {@link PythonParser#declaration}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitApp_Initialize(PythonParser.App_InitializeContext ctx);
+	T visitDecl(PythonParser.DeclContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code String_Value}
+	 * labeled alternative in {@link PythonParser#value}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitString_Value(PythonParser.String_ValueContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code Int_Value}
+	 * labeled alternative in {@link PythonParser#value}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitInt_Value(PythonParser.Int_ValueContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code AppValue}
+	 * labeled alternative in {@link PythonParser#value}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAppValue(PythonParser.AppValueContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code Routes}
 	 * labeled alternative in {@link PythonParser#route}.
@@ -53,10 +74,17 @@ public interface PythonParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitFunctions(PythonParser.FunctionsContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code Run_Server}
+	 * Visit a parse tree produced by the {@code Params}
+	 * labeled alternative in {@link PythonParser#parameter}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitParams(PythonParser.ParamsContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code RunServer}
 	 * labeled alternative in {@link PythonParser#server_startup}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitRun_Server(PythonParser.Run_ServerContext ctx);
+	T visitRunServer(PythonParser.RunServerContext ctx);
 }

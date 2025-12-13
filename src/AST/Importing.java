@@ -2,13 +2,13 @@ package AST;
 
 import java.util.ArrayList;
 
-class Importing {
+public class Importing {
     String packageName;
     ArrayList<String> objects;
 
-    public Importing(ArrayList<String> objects, String packageName) {
-        this.objects = objects;
+    public Importing(String packageName) {
         this.packageName = packageName;
+        this.objects = new ArrayList<>();
     }
 
     public void addObject(String object) {

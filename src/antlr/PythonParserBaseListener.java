@@ -53,13 +53,49 @@ public class PythonParserBaseListener implements PythonParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterApp_Initialize(PythonParser.App_InitializeContext ctx) { }
+	@Override public void enterDecl(PythonParser.DeclContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitApp_Initialize(PythonParser.App_InitializeContext ctx) { }
+	@Override public void exitDecl(PythonParser.DeclContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterString_Value(PythonParser.String_ValueContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitString_Value(PythonParser.String_ValueContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterInt_Value(PythonParser.Int_ValueContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitInt_Value(PythonParser.Int_ValueContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterAppValue(PythonParser.AppValueContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAppValue(PythonParser.AppValueContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -89,13 +125,25 @@ public class PythonParserBaseListener implements PythonParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterRun_Server(PythonParser.Run_ServerContext ctx) { }
+	@Override public void enterParams(PythonParser.ParamsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitRun_Server(PythonParser.Run_ServerContext ctx) { }
+	@Override public void exitParams(PythonParser.ParamsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterRunServer(PythonParser.RunServerContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitRunServer(PythonParser.RunServerContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

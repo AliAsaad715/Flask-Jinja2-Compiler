@@ -44,17 +44,53 @@ public interface PythonParserListener extends ParseTreeListener {
 	 */
 	void exitLibrary(PythonParser.LibraryContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code App_Initialize}
-	 * labeled alternative in {@link PythonParser#app_initialization}.
+	 * Enter a parse tree produced by the {@code Decl}
+	 * labeled alternative in {@link PythonParser#declaration}.
 	 * @param ctx the parse tree
 	 */
-	void enterApp_Initialize(PythonParser.App_InitializeContext ctx);
+	void enterDecl(PythonParser.DeclContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code App_Initialize}
-	 * labeled alternative in {@link PythonParser#app_initialization}.
+	 * Exit a parse tree produced by the {@code Decl}
+	 * labeled alternative in {@link PythonParser#declaration}.
 	 * @param ctx the parse tree
 	 */
-	void exitApp_Initialize(PythonParser.App_InitializeContext ctx);
+	void exitDecl(PythonParser.DeclContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code String_Value}
+	 * labeled alternative in {@link PythonParser#value}.
+	 * @param ctx the parse tree
+	 */
+	void enterString_Value(PythonParser.String_ValueContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code String_Value}
+	 * labeled alternative in {@link PythonParser#value}.
+	 * @param ctx the parse tree
+	 */
+	void exitString_Value(PythonParser.String_ValueContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code Int_Value}
+	 * labeled alternative in {@link PythonParser#value}.
+	 * @param ctx the parse tree
+	 */
+	void enterInt_Value(PythonParser.Int_ValueContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code Int_Value}
+	 * labeled alternative in {@link PythonParser#value}.
+	 * @param ctx the parse tree
+	 */
+	void exitInt_Value(PythonParser.Int_ValueContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code AppValue}
+	 * labeled alternative in {@link PythonParser#value}.
+	 * @param ctx the parse tree
+	 */
+	void enterAppValue(PythonParser.AppValueContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code AppValue}
+	 * labeled alternative in {@link PythonParser#value}.
+	 * @param ctx the parse tree
+	 */
+	void exitAppValue(PythonParser.AppValueContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code Routes}
 	 * labeled alternative in {@link PythonParser#route}.
@@ -80,15 +116,27 @@ public interface PythonParserListener extends ParseTreeListener {
 	 */
 	void exitFunctions(PythonParser.FunctionsContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code Run_Server}
-	 * labeled alternative in {@link PythonParser#server_startup}.
+	 * Enter a parse tree produced by the {@code Params}
+	 * labeled alternative in {@link PythonParser#parameter}.
 	 * @param ctx the parse tree
 	 */
-	void enterRun_Server(PythonParser.Run_ServerContext ctx);
+	void enterParams(PythonParser.ParamsContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code Run_Server}
+	 * Exit a parse tree produced by the {@code Params}
+	 * labeled alternative in {@link PythonParser#parameter}.
+	 * @param ctx the parse tree
+	 */
+	void exitParams(PythonParser.ParamsContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code RunServer}
 	 * labeled alternative in {@link PythonParser#server_startup}.
 	 * @param ctx the parse tree
 	 */
-	void exitRun_Server(PythonParser.Run_ServerContext ctx);
+	void enterRunServer(PythonParser.RunServerContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code RunServer}
+	 * labeled alternative in {@link PythonParser#server_startup}.
+	 * @param ctx the parse tree
+	 */
+	void exitRunServer(PythonParser.RunServerContext ctx);
 }
