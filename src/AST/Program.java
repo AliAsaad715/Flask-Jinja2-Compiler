@@ -28,8 +28,8 @@ public class Program {
     public String toString() {
         return "Program{" +
                 "imports=" + imports +
-                ", declarations=" + declarations +
-                ", routes=" + routes +
+                "\n, declarations=" + declarations +
+                "\n, routes=" + routes +
                 '}';
     }
 }
