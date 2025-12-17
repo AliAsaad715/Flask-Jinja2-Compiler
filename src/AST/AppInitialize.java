@@ -10,8 +10,7 @@ public class AppInitialize extends Declaration {
         this.value = value;
     }
 
-    @Override
-    public String toString() {
+    @Override    public String toString() {
         return "AppInitialize{" +
                 "variable='" + variable + '\'' +
                 ", value=" + value +

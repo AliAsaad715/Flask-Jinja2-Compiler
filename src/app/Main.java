@@ -1,17 +1,45 @@
 package app;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+import AST.css.CssDeclNode;
+import AST.css.CssFileNode;
+import AST.css.CssRuleNode;
+import AST.template.AttributeNode;
+import AST.template.AttributeTextPartNode;
+import AST.template.ElementNode;
+import AST.template.PrintNode;
+import AST.template.TemplateFileNode;
+import AST.template.TextNode;
+import AST.template.expr.AttrExpr;
+import AST.template.expr.ExprNode;
+import AST.template.expr.NameExpr;
+
 public class Main {
     public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.println("Hello and welcome!");
+        TemplateFileNode template = new TemplateFileNode(1);
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
-        }
+        ElementNode div = new ElementNode(1, "div");
+
+        AttributeNode cls = new AttributeNode(1, "class");
+        cls.addValuePart(new AttributeTextPartNode(1, "container"));
+        div.addAttribute(cls);
+
+        div.addBodyItem(new TextNode(2, "Hello "));
+
+        ExprNode expr = new AttrExpr(3, new NameExpr(3, "product"), "name");
+        div.addBodyItem(new PrintNode(3, expr));
+
+        template.addItem(div);
+
+        System.out.println("=== TEMPLATE AST ===");
+        System.out.println(template.printTree());
+
+        CssFileNode css = new CssFileNode(1);
+        CssRuleNode rule = new CssRuleNode(1, ".container");
+        rule.addDecl(new CssDeclNode(2, "width", "80%"));
+        rule.addDecl(new CssDeclNode(3, "margin", "20px auto"));
+        css.addRule(rule);
+
+        System.out.println("=== CSS AST ===");
+        System.out.println(css.printTree());
     }
 }
