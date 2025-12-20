@@ -204,6 +204,22 @@ public class TemplateAstBuilder extends TemplateParserBaseVisitor<AstNode> {
 
         return el;
     }
+    @Override
+    public AstNode visitJinjaWithItem(TemplateParser.JinjaWithItemContext ctx) {
+        return visit(ctx.jinjaWith());
+    }
+
+    @Override
+    public AstNode visitJinjaWith(TemplateParser.JinjaWithContext ctx) {
+        WithNode w = new WithNode(lineOf(ctx.getStart()), buildExpr(ctx.expr(), ctx.getStart()));
+        for (TemplateParser.WithBodyItemContext b : ctx.withBodyItem()) {
+            AstNode n = visit(b.item());
+            if (n instanceof TemplateItemNode) {
+                w.addBodyItem((TemplateItemNode) n);
+            }
+        }
+        return w;
+    }
 
 
     private ExprNode buildExpr(TemplateParser.ExprContext ctx, Token fallback) {

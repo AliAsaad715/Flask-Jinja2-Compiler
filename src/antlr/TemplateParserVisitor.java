@@ -45,6 +45,13 @@ public interface TemplateParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitJinjaIfItem(TemplateParser.JinjaIfItemContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code JinjaWithItem}
+	 * labeled alternative in {@link TemplateParser#item}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitJinjaWithItem(TemplateParser.JinjaWithItemContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code JinjaExtendsItem}
 	 * labeled alternative in {@link TemplateParser#item}.
 	 * @param ctx the parse tree
@@ -218,6 +225,18 @@ public interface TemplateParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitJinjaElse(TemplateParser.JinjaElseContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link TemplateParser#jinjaWith}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitJinjaWith(TemplateParser.JinjaWithContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link TemplateParser#withBodyItem}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitWithBodyItem(TemplateParser.WithBodyItemContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link TemplateParser#elseBodyItem}.
 	 * @param ctx the parse tree

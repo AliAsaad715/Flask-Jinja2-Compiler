@@ -66,6 +66,18 @@ public interface TemplateParserListener extends ParseTreeListener {
 	 */
 	void exitJinjaIfItem(TemplateParser.JinjaIfItemContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code JinjaWithItem}
+	 * labeled alternative in {@link TemplateParser#item}.
+	 * @param ctx the parse tree
+	 */
+	void enterJinjaWithItem(TemplateParser.JinjaWithItemContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code JinjaWithItem}
+	 * labeled alternative in {@link TemplateParser#item}.
+	 * @param ctx the parse tree
+	 */
+	void exitJinjaWithItem(TemplateParser.JinjaWithItemContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code JinjaExtendsItem}
 	 * labeled alternative in {@link TemplateParser#item}.
 	 * @param ctx the parse tree
@@ -359,6 +371,26 @@ public interface TemplateParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitJinjaElse(TemplateParser.JinjaElseContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link TemplateParser#jinjaWith}.
+	 * @param ctx the parse tree
+	 */
+	void enterJinjaWith(TemplateParser.JinjaWithContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link TemplateParser#jinjaWith}.
+	 * @param ctx the parse tree
+	 */
+	void exitJinjaWith(TemplateParser.JinjaWithContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link TemplateParser#withBodyItem}.
+	 * @param ctx the parse tree
+	 */
+	void enterWithBodyItem(TemplateParser.WithBodyItemContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link TemplateParser#withBodyItem}.
+	 * @param ctx the parse tree
+	 */
+	void exitWithBodyItem(TemplateParser.WithBodyItemContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link TemplateParser#elseBodyItem}.
 	 * @param ctx the parse tree

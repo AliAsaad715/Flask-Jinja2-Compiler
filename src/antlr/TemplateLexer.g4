@@ -128,4 +128,7 @@ EQ_S: '=' -> type(EQ);
 
 INT_S: [0-9]+ -> type(INT);
 STRING_S: ('"' (~["\\] | '\\' .)* '"' | '\'' (~['\\] | '\\' .)* '\'') -> type(STRING);
+WITH: 'with';
+ENDWITH: 'endwith';
+
 ID_S: [a-zA-Z_][a-zA-Z0-9_]* -> type(ID);

@@ -25,6 +25,10 @@ options { tokenVocab=TemplateLexer; }
         return _input.LA(1) == JINJA_STMT_OPEN &&
                (_input.LA(2) == ELIF || _input.LA(2) == ELSE || _input.LA(2) == ENDIF);
     }
+    private boolean nextIsEndWith() {
+        return nextIsStmt(ENDWITH);
+    }
+
 }
 
 template
@@ -36,10 +40,12 @@ item
     | jinjaBlock      #JinjaBlockItem
     | jinjaFor        #JinjaForItem
     | jinjaIf         #JinjaIfItem
+    | jinjaWith       #JinjaWithItem
     | jinjaExtends    #JinjaExtendsItem
     | jinjaPrint      #JinjaPrintItem
     | htmlText        #HtmlTextItem
     ;
+
 
 htmlText
     : TEXT            #PlainText
@@ -133,6 +139,15 @@ elifBodyItem
 jinjaElse
     : JINJA_STMT_OPEN ELSE JINJA_STMT_CLOSE
       elseBodyItem*
+    ;
+jinjaWith
+    : JINJA_STMT_OPEN WITH expr JINJA_STMT_CLOSE
+      withBodyItem*
+      JINJA_STMT_OPEN ENDWITH JINJA_STMT_CLOSE
+    ;
+
+withBodyItem
+    : { !nextIsEndWith() }? item
     ;
 
 elseBodyItem
