@@ -4,6 +4,29 @@ options { tokenVocab=TemplateLexer; }
 
 @header { package antlr; }
 
+@members {
+    private boolean nextIsStmt(int kw) {
+        return _input.LA(1) == JINJA_STMT_OPEN && _input.LA(2) == kw;
+    }
+
+    private boolean nextIsEndFor() {
+        return nextIsStmt(ENDFOR);
+    }
+
+    private boolean nextIsEndBlock() {
+        return nextIsStmt(ENDBLOCK);
+    }
+
+    private boolean nextIsEndIf() {
+        return nextIsStmt(ENDIF);
+    }
+
+    private boolean nextIsIfBranchOrEnd() {
+        return _input.LA(1) == JINJA_STMT_OPEN &&
+               (_input.LA(2) == ELIF || _input.LA(2) == ELSE || _input.LA(2) == ENDIF);
+    }
+}
+
 template
     : item* EOF
     ;
@@ -23,7 +46,8 @@ htmlText
     ;
 
 htmlElement
-    : normalElement       #HtmlNormalElement
+    : voidElement         #HtmlVoidElement
+    | normalElement       #HtmlNormalElement
     | selfClosingElement  #HtmlSelfClosingElement
     ;
 
@@ -35,12 +59,16 @@ openTag
     : TAG_OPEN TAG_NAME attribute* TAG_CLOSE
     ;
 
-closeTag
-    : TAG_OPEN TAG_SLASH TAG_NAME TAG_CLOSE
+selfClosingElement
+    : TAG_OPEN (TAG_NAME | VOID_TAG_NAME) attribute* TAG_SELF_CLOSE
     ;
 
-selfClosingElement
-    : TAG_OPEN TAG_NAME attribute* TAG_SELF_CLOSE
+closeTag
+    : TAG_OPEN TAG_SLASH (TAG_NAME | VOID_TAG_NAME) TAG_CLOSE
+    ;
+
+voidElement
+    : TAG_OPEN VOID_TAG_NAME attribute* TAG_CLOSE
     ;
 
 attribute
@@ -63,32 +91,52 @@ jinjaExtends
 
 jinjaBlock
     : JINJA_STMT_OPEN BLOCK ID JINJA_STMT_CLOSE
-      item*
+      blockBodyItem*
       JINJA_STMT_OPEN ENDBLOCK JINJA_STMT_CLOSE
+    ;
+
+blockBodyItem
+    : { !nextIsEndBlock() }? item
     ;
 
 jinjaFor
     : JINJA_STMT_OPEN FOR ID IN expr JINJA_STMT_CLOSE
-      item*
+      forBodyItem*
       JINJA_STMT_OPEN ENDFOR JINJA_STMT_CLOSE
+    ;
+
+forBodyItem
+    : { !nextIsEndFor() }? item
     ;
 
 jinjaIf
     : JINJA_STMT_OPEN IF expr JINJA_STMT_CLOSE
-      item*
+      ifThenBodyItem*
       jinjaElif*
       jinjaElse?
       JINJA_STMT_OPEN ENDIF JINJA_STMT_CLOSE
     ;
 
+ifThenBodyItem
+    : { !nextIsIfBranchOrEnd() }? item
+    ;
+
 jinjaElif
     : JINJA_STMT_OPEN ELIF expr JINJA_STMT_CLOSE
-      item*
+      elifBodyItem*
+    ;
+
+elifBodyItem
+    : { !nextIsIfBranchOrEnd() }? item
     ;
 
 jinjaElse
     : JINJA_STMT_OPEN ELSE JINJA_STMT_CLOSE
-      item*
+      elseBodyItem*
+    ;
+
+elseBodyItem
+    : { !nextIsEndIf() }? item
     ;
 
 jinjaPrint

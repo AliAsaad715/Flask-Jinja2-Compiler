@@ -26,7 +26,7 @@ public abstract class AstNode {
         return Collections.unmodifiableList(children);
     }
 
-    protected void addChild(AstNode child) {
+   public void addChild(AstNode child) {
         if (child != null) {
             children.add(child);
         }

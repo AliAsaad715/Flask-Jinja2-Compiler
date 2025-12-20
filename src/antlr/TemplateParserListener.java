@@ -114,6 +114,18 @@ public interface TemplateParserListener extends ParseTreeListener {
 	 */
 	void exitPlainText(TemplateParser.PlainTextContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code HtmlVoidElement}
+	 * labeled alternative in {@link TemplateParser#htmlElement}.
+	 * @param ctx the parse tree
+	 */
+	void enterHtmlVoidElement(TemplateParser.HtmlVoidElementContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code HtmlVoidElement}
+	 * labeled alternative in {@link TemplateParser#htmlElement}.
+	 * @param ctx the parse tree
+	 */
+	void exitHtmlVoidElement(TemplateParser.HtmlVoidElementContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code HtmlNormalElement}
 	 * labeled alternative in {@link TemplateParser#htmlElement}.
 	 * @param ctx the parse tree
@@ -158,6 +170,16 @@ public interface TemplateParserListener extends ParseTreeListener {
 	 */
 	void exitOpenTag(TemplateParser.OpenTagContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link TemplateParser#selfClosingElement}.
+	 * @param ctx the parse tree
+	 */
+	void enterSelfClosingElement(TemplateParser.SelfClosingElementContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link TemplateParser#selfClosingElement}.
+	 * @param ctx the parse tree
+	 */
+	void exitSelfClosingElement(TemplateParser.SelfClosingElementContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link TemplateParser#closeTag}.
 	 * @param ctx the parse tree
 	 */
@@ -168,15 +190,15 @@ public interface TemplateParserListener extends ParseTreeListener {
 	 */
 	void exitCloseTag(TemplateParser.CloseTagContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link TemplateParser#selfClosingElement}.
+	 * Enter a parse tree produced by {@link TemplateParser#voidElement}.
 	 * @param ctx the parse tree
 	 */
-	void enterSelfClosingElement(TemplateParser.SelfClosingElementContext ctx);
+	void enterVoidElement(TemplateParser.VoidElementContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link TemplateParser#selfClosingElement}.
+	 * Exit a parse tree produced by {@link TemplateParser#voidElement}.
 	 * @param ctx the parse tree
 	 */
-	void exitSelfClosingElement(TemplateParser.SelfClosingElementContext ctx);
+	void exitVoidElement(TemplateParser.VoidElementContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code AttributeKV}
 	 * labeled alternative in {@link TemplateParser#attribute}.
@@ -258,6 +280,16 @@ public interface TemplateParserListener extends ParseTreeListener {
 	 */
 	void exitJinjaBlock(TemplateParser.JinjaBlockContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link TemplateParser#blockBodyItem}.
+	 * @param ctx the parse tree
+	 */
+	void enterBlockBodyItem(TemplateParser.BlockBodyItemContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link TemplateParser#blockBodyItem}.
+	 * @param ctx the parse tree
+	 */
+	void exitBlockBodyItem(TemplateParser.BlockBodyItemContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link TemplateParser#jinjaFor}.
 	 * @param ctx the parse tree
 	 */
@@ -267,6 +299,16 @@ public interface TemplateParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitJinjaFor(TemplateParser.JinjaForContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link TemplateParser#forBodyItem}.
+	 * @param ctx the parse tree
+	 */
+	void enterForBodyItem(TemplateParser.ForBodyItemContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link TemplateParser#forBodyItem}.
+	 * @param ctx the parse tree
+	 */
+	void exitForBodyItem(TemplateParser.ForBodyItemContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link TemplateParser#jinjaIf}.
 	 * @param ctx the parse tree
@@ -278,6 +320,16 @@ public interface TemplateParserListener extends ParseTreeListener {
 	 */
 	void exitJinjaIf(TemplateParser.JinjaIfContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link TemplateParser#ifThenBodyItem}.
+	 * @param ctx the parse tree
+	 */
+	void enterIfThenBodyItem(TemplateParser.IfThenBodyItemContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link TemplateParser#ifThenBodyItem}.
+	 * @param ctx the parse tree
+	 */
+	void exitIfThenBodyItem(TemplateParser.IfThenBodyItemContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link TemplateParser#jinjaElif}.
 	 * @param ctx the parse tree
 	 */
@@ -288,6 +340,16 @@ public interface TemplateParserListener extends ParseTreeListener {
 	 */
 	void exitJinjaElif(TemplateParser.JinjaElifContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link TemplateParser#elifBodyItem}.
+	 * @param ctx the parse tree
+	 */
+	void enterElifBodyItem(TemplateParser.ElifBodyItemContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link TemplateParser#elifBodyItem}.
+	 * @param ctx the parse tree
+	 */
+	void exitElifBodyItem(TemplateParser.ElifBodyItemContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link TemplateParser#jinjaElse}.
 	 * @param ctx the parse tree
 	 */
@@ -297,6 +359,16 @@ public interface TemplateParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitJinjaElse(TemplateParser.JinjaElseContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link TemplateParser#elseBodyItem}.
+	 * @param ctx the parse tree
+	 */
+	void enterElseBodyItem(TemplateParser.ElseBodyItemContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link TemplateParser#elseBodyItem}.
+	 * @param ctx the parse tree
+	 */
+	void exitElseBodyItem(TemplateParser.ElseBodyItemContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link TemplateParser#jinjaPrint}.
 	 * @param ctx the parse tree

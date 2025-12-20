@@ -125,6 +125,18 @@ public class TemplateParserBaseListener implements TemplateParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterHtmlVoidElement(TemplateParser.HtmlVoidElementContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitHtmlVoidElement(TemplateParser.HtmlVoidElementContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterHtmlNormalElement(TemplateParser.HtmlNormalElementContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -173,6 +185,18 @@ public class TemplateParserBaseListener implements TemplateParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterSelfClosingElement(TemplateParser.SelfClosingElementContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitSelfClosingElement(TemplateParser.SelfClosingElementContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterCloseTag(TemplateParser.CloseTagContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -185,13 +209,13 @@ public class TemplateParserBaseListener implements TemplateParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterSelfClosingElement(TemplateParser.SelfClosingElementContext ctx) { }
+	@Override public void enterVoidElement(TemplateParser.VoidElementContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitSelfClosingElement(TemplateParser.SelfClosingElementContext ctx) { }
+	@Override public void exitVoidElement(TemplateParser.VoidElementContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -281,6 +305,18 @@ public class TemplateParserBaseListener implements TemplateParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterBlockBodyItem(TemplateParser.BlockBodyItemContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitBlockBodyItem(TemplateParser.BlockBodyItemContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterJinjaFor(TemplateParser.JinjaForContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -288,6 +324,18 @@ public class TemplateParserBaseListener implements TemplateParserListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitJinjaFor(TemplateParser.JinjaForContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterForBodyItem(TemplateParser.ForBodyItemContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitForBodyItem(TemplateParser.ForBodyItemContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -305,6 +353,18 @@ public class TemplateParserBaseListener implements TemplateParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterIfThenBodyItem(TemplateParser.IfThenBodyItemContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitIfThenBodyItem(TemplateParser.IfThenBodyItemContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterJinjaElif(TemplateParser.JinjaElifContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -317,6 +377,18 @@ public class TemplateParserBaseListener implements TemplateParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterElifBodyItem(TemplateParser.ElifBodyItemContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitElifBodyItem(TemplateParser.ElifBodyItemContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterJinjaElse(TemplateParser.JinjaElseContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -324,6 +396,18 @@ public class TemplateParserBaseListener implements TemplateParserListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitJinjaElse(TemplateParser.JinjaElseContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterElseBodyItem(TemplateParser.ElseBodyItemContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitElseBodyItem(TemplateParser.ElseBodyItemContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

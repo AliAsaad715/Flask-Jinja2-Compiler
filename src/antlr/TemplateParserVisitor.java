@@ -73,6 +73,13 @@ public interface TemplateParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitPlainText(TemplateParser.PlainTextContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code HtmlVoidElement}
+	 * labeled alternative in {@link TemplateParser#htmlElement}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitHtmlVoidElement(TemplateParser.HtmlVoidElementContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code HtmlNormalElement}
 	 * labeled alternative in {@link TemplateParser#htmlElement}.
 	 * @param ctx the parse tree
@@ -99,17 +106,23 @@ public interface TemplateParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitOpenTag(TemplateParser.OpenTagContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link TemplateParser#selfClosingElement}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitSelfClosingElement(TemplateParser.SelfClosingElementContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link TemplateParser#closeTag}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitCloseTag(TemplateParser.CloseTagContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link TemplateParser#selfClosingElement}.
+	 * Visit a parse tree produced by {@link TemplateParser#voidElement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitSelfClosingElement(TemplateParser.SelfClosingElementContext ctx);
+	T visitVoidElement(TemplateParser.VoidElementContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code AttributeKV}
 	 * labeled alternative in {@link TemplateParser#attribute}.
@@ -158,11 +171,23 @@ public interface TemplateParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitJinjaBlock(TemplateParser.JinjaBlockContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link TemplateParser#blockBodyItem}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBlockBodyItem(TemplateParser.BlockBodyItemContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link TemplateParser#jinjaFor}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitJinjaFor(TemplateParser.JinjaForContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link TemplateParser#forBodyItem}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitForBodyItem(TemplateParser.ForBodyItemContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link TemplateParser#jinjaIf}.
 	 * @param ctx the parse tree
@@ -170,17 +195,35 @@ public interface TemplateParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitJinjaIf(TemplateParser.JinjaIfContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link TemplateParser#ifThenBodyItem}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitIfThenBodyItem(TemplateParser.IfThenBodyItemContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link TemplateParser#jinjaElif}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitJinjaElif(TemplateParser.JinjaElifContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link TemplateParser#elifBodyItem}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitElifBodyItem(TemplateParser.ElifBodyItemContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link TemplateParser#jinjaElse}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitJinjaElse(TemplateParser.JinjaElseContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link TemplateParser#elseBodyItem}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitElseBodyItem(TemplateParser.ElseBodyItemContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link TemplateParser#jinjaPrint}.
 	 * @param ctx the parse tree

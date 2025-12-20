@@ -24,6 +24,23 @@ TAG_SLASH: '/';
 EQ: '=';
 DQUOTE: '"' -> pushMode(ATTR_DQ_MODE);
 SQUOTE: '\'' -> pushMode(ATTR_SQ_MODE);
+VOID_TAG_NAME
+    : 'img'
+    | 'input'
+    | 'br'
+    | 'hr'
+    | 'meta'
+    | 'link'
+    | 'source'
+    | 'area'
+    | 'base'
+    | 'col'
+    | 'embed'
+    | 'param'
+    | 'track'
+    | 'wbr'
+    ;
+
 TAG_NAME: [a-zA-Z_!][a-zA-Z0-9_:-]*;
 TAG_WS: [ \t\r\n]+ -> skip;
 
