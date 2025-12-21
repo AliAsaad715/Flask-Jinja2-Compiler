@@ -86,6 +86,14 @@ public class Main {
             System.out.println("=== SYMBOL TABLE ===");
             System.out.println(table.print());
         }
+
+        List<AstNode> inlineCssAsts = InlineCssRunner.parseInlineCss(ast);
+        if (!inlineCssAsts.isEmpty()) {
+            for (int i = 0; i < inlineCssAsts.size(); i++) {
+                System.out.println("=== INLINE CSS AST " + (i + 1) + " ===");
+                System.out.println(inlineCssAsts.get(i).printTree());
+            }
+        }
     }
 
     private static void runCss(String input) {

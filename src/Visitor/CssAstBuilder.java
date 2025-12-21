@@ -131,4 +131,5 @@ public class CssAstBuilder extends CssParserBaseVisitor<AstNode> {
     private int lineOf(Token t) {
         return t == null ? -1 : t.getLine();
     }
+
 }
