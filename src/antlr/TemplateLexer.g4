@@ -39,6 +39,8 @@ VOID_TAG_NAME
     | 'param'
     | 'track'
     | 'wbr'
+    | '!DOCTYPE'
+    | '!doctype'
     ;
 
 TAG_NAME: [a-zA-Z_!][a-zA-Z0-9_:-]*;

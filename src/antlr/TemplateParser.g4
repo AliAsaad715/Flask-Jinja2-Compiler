@@ -172,7 +172,7 @@ atom
     : ID                        #AtomId
     | INT                       #AtomInt
     | STRING                    #AtomString
-    | LPAREN expr RPAREN        #AtomParen
+    | LPAREN expr? RPAREN       #AtomParen
     | LBRACK expr? RBRACK       #AtomBracket
     ;
 
