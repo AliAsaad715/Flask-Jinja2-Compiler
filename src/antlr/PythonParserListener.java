@@ -68,6 +68,16 @@ public interface PythonParserListener extends ParseTreeListener {
 	 */
 	void exitAssign_stmt(PythonParser.Assign_stmtContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link PythonParser#end_stmt}.
+	 * @param ctx the parse tree
+	 */
+	void enterEnd_stmt(PythonParser.End_stmtContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link PythonParser#end_stmt}.
+	 * @param ctx the parse tree
+	 */
+	void exitEnd_stmt(PythonParser.End_stmtContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link PythonParser#assign_target}.
 	 * @param ctx the parse tree
 	 */
@@ -287,6 +297,16 @@ public interface PythonParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitGen_expr(PythonParser.Gen_exprContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link PythonParser#nl}.
+	 * @param ctx the parse tree
+	 */
+	void enterNl(PythonParser.NlContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link PythonParser#nl}.
+	 * @param ctx the parse tree
+	 */
+	void exitNl(PythonParser.NlContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link PythonParser#list_literal}.
 	 * @param ctx the parse tree

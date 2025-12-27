@@ -10,7 +10,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
 
         // Choose test file
-        String file = (args.length > 0) ? args[0] : "Tests/products_html.txt";
+        String file = (args.length > 0) ? args[0] : "Tests/app_py.txt";
 
         CharStream input = CharStreams.fromFileName(file);
 

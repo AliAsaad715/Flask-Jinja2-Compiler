@@ -114,7 +114,6 @@ public class PythonLexer extends Lexer {
 	            if (!pendingTokens.isEmpty()) {
 	                org.antlr.v4.runtime.Token t = pendingTokens.poll();
 
-	                // only remember DEFAULT channel tokens
 	                if (t.getChannel() == org.antlr.v4.runtime.Token.DEFAULT_CHANNEL) {
 	                    lastToken = t;
 	                }
@@ -123,7 +122,6 @@ public class PythonLexer extends Lexer {
 
 	            org.antlr.v4.runtime.Token next = super.nextToken();
 
-	            // (spaces at beginning of a logical line while indent stack is still [0])
 	            if (next.getChannel() == org.antlr.v4.runtime.Token.DEFAULT_CHANNEL
 	                    && indents.size() == 1
 	                    && (lastToken == null || lastToken.getType() == NEWLINE)

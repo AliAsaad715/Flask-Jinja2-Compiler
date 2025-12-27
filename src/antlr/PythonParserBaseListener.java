@@ -89,6 +89,18 @@ public class PythonParserBaseListener implements PythonParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterEnd_stmt(PythonParser.End_stmtContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitEnd_stmt(PythonParser.End_stmtContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterAssign_target(PythonParser.Assign_targetContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -348,6 +360,18 @@ public class PythonParserBaseListener implements PythonParserListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitGen_expr(PythonParser.Gen_exprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterNl(PythonParser.NlContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitNl(PythonParser.NlContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

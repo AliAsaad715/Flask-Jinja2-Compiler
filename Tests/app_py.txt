@@ -45,12 +45,10 @@ def product_detail(product_id):
 @app.route('/add-product', methods=['GET', 'POST'])
 def add_product():
     if request.method == 'POST':
-        # الحصول على البيانات من النموذج
         name = request.form['name']
         price = float(request.form['price'])
         details = request.form['details']
         
-        # التعامل مع رفع الصورة
         image_file = request.files['image']
         filename = None
         
@@ -58,7 +56,6 @@ def add_product():
             filename = secure_filename(image_file.filename)
             image_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         
-        # إنشاء منتج جديد
         new_product = {
             'id': len(products) + 1,
             'name': name,
@@ -73,7 +70,6 @@ def add_product():
     return render_template('add_product.html')
 
 if __name__ == '__main__':
-    # إنشاء مجلد التحميل إذا لم يكن موجوداً
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])
     app.run()
