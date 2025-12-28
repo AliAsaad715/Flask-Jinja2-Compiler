@@ -4,6 +4,7 @@ import antlr.PythonParser;
 import antlr.PythonParserBaseVisitor;
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
+import symbol.SymbolTable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,14 +12,20 @@ import java.util.List;
 public class FlaskJinja2Visitor extends PythonParserBaseVisitor<FlaskJinja2Visitor.AstNode> {
 
     private final BufferedTokenStream tokens;
+    private final SymbolTable symbolTable;
     private ProgramNode programRoot; // stored correctly at end of execution
 
     public FlaskJinja2Visitor(BufferedTokenStream tokens) {
         this.tokens = tokens;
+        this.symbolTable = new SymbolTable();
     }
 
     public ProgramNode getProgramRoot() {
         return programRoot;
+    }
+
+    public SymbolTable getSymbolTable() {
+        return symbolTable;
     }
 
     // -------------------------
@@ -65,27 +72,36 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<FlaskJinja2Visit
         //  | IMPORT dotted_name (COMMA dotted_name)* NEWLINE
         String raw = textOf(ctx);
         List<String> names = new ArrayList<>();
+        int line = lineOf(ctx);
 
         if (ctx.FROM() != null) {
             String pkg = textOf(ctx.dotted_name(0));
             for (int i = 1; i < ctx.dotted_name().size(); i++) {
                 names.add(textOf(ctx.dotted_name(i)));
             }
-            return new ImportNode(lineOf(ctx), "from", pkg, names, raw);
+            recordImportSymbols(names, pkg, raw, line, true);
+            return new ImportNode(line, "from", pkg, names, raw);
         } else {
             for (int i = 0; i < ctx.dotted_name().size(); i++) {
                 names.add(textOf(ctx.dotted_name(i)));
             }
-            return new ImportNode(lineOf(ctx), "import", null, names, raw);
+            recordImportSymbols(names, null, raw, line, false);
+            return new ImportNode(line, "import", null, names, raw);
         }
     }
 
     @Override
     public AstNode visitAssign_stmt(PythonParser.Assign_stmtContext ctx) {
         // assign_stmt : assign_target EQUAL expr NEWLINE
+        int line = lineOf(ctx);
         String target = textOf(ctx.assign_target()); // supports: app.config['UPLOAD_FOLDER']
+        String baseName = ctx.assign_target().ID().getText();
         AstNode value = visit(ctx.expr());
-        return new AssignNode(lineOf(ctx), target, value);
+        SymbolTable.SymbolEntry entry = defineInCurrentScope(baseName, SymbolTable.SymbolKind.VARIABLE, line);
+        if (entry != null) {
+            entry.setAttribute("target", target);
+        }
+        return new AssignNode(line, target, value);
     }
 
     @Override
@@ -151,7 +167,11 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<FlaskJinja2Visit
     public AstNode visitFuncdef(PythonParser.FuncdefContext ctx) {
         // funcdef : DEFINETION ID OPEN_B params? CLOSE_B COLON suite
         String name = ctx.ID().getText();
-        FunctionNode fn = new FunctionNode(lineOf(ctx), name);
+        int line = lineOf(ctx);
+        FunctionNode fn = new FunctionNode(line, name);
+        SymbolTable.SymbolEntry fnEntry = defineInCurrentScope(name, SymbolTable.SymbolKind.FUNCTION, line);
+
+        symbolTable.pushScope("func " + name);
 
         if (ctx.params() != null) {
             ParamsNode params = (ParamsNode) visit(ctx.params());
@@ -159,13 +179,22 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<FlaskJinja2Visit
         }
 
         fn.body = (BlockNode) visit(ctx.suite());
+        symbolTable.popScope();
+
+        if (fnEntry != null) {
+            fnEntry.setAttribute("params", new ArrayList<>(fn.parameters));
+        }
         return fn;
     }
 
     @Override
     public AstNode visitParams(PythonParser.ParamsContext ctx) {
         ParamsNode p = new ParamsNode(lineOf(ctx));
-        for (int i = 0; i < ctx.ID().size(); i++) p.names.add(ctx.ID(i).getText());
+        for (int i = 0; i < ctx.ID().size(); i++) {
+            String paramName = ctx.ID(i).getText();
+            p.names.add(paramName);
+            defineInCurrentScope(paramName, SymbolTable.SymbolKind.PARAMETER, ctx.ID(i).getSymbol().getLine());
+        }
         return p;
     }
 
@@ -295,13 +324,19 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<FlaskJinja2Visit
 
     @Override
     public AstNode visitAtom(PythonParser.AtomContext ctx) {
-        if (ctx.ID() != null) return new IdentifierNode(lineOf(ctx), ctx.ID().getText());
-        if (ctx.STRING() != null) return new StringNode(lineOf(ctx), stripQuotes(ctx.STRING().getText()));
-        if (ctx.INT_VALUE() != null) return new NumberNode(lineOf(ctx), ctx.INT_VALUE().getText());
-        if (ctx.FLOAT_VALUE() != null) return new NumberNode(lineOf(ctx), ctx.FLOAT_VALUE().getText());
-        if (ctx.NONE() != null) return new NoneNode(lineOf(ctx));
-        if (ctx.TRUE() != null) return new BoolNode(lineOf(ctx), true);
-        if (ctx.FALSE() != null) return new BoolNode(lineOf(ctx), false);
+        int line = lineOf(ctx);
+        if (ctx.ID() != null) {
+            String name = ctx.ID().getText();
+            IdentifierNode node = new IdentifierNode(line, name);
+            node.setSymbol(symbolTable.resolve(name, line));
+            return node;
+        }
+        if (ctx.STRING() != null) return new StringNode(line, stripQuotes(ctx.STRING().getText()));
+        if (ctx.INT_VALUE() != null) return new NumberNode(line, ctx.INT_VALUE().getText());
+        if (ctx.FLOAT_VALUE() != null) return new NumberNode(line, ctx.FLOAT_VALUE().getText());
+        if (ctx.NONE() != null) return new NoneNode(line);
+        if (ctx.TRUE() != null) return new BoolNode(line, true);
+        if (ctx.FALSE() != null) return new BoolNode(line, false);
 
         if (ctx.list_literal() != null) return visit(ctx.list_literal());
         if (ctx.dict_or_set_literal() != null) return visit(ctx.dict_or_set_literal());
@@ -340,11 +375,15 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<FlaskJinja2Visit
 
     @Override
     public AstNode visitGen_expr(PythonParser.Gen_exprContext ctx) {
-        AstNode element = visit(ctx.expr(0));
         String var = ctx.ID().getText();
+        int line = lineOf(ctx);
         AstNode iterable = visit(ctx.expr(1));
+        symbolTable.pushScope("genexpr");
+        SymbolTable.SymbolEntry varEntry = symbolTable.define(var, SymbolTable.SymbolKind.VARIABLE, line);
+        AstNode element = visit(ctx.expr(0));
         AstNode cond = (ctx.expr().size() > 2) ? visit(ctx.expr(2)) : null;
-        return new GeneratorNode(lineOf(ctx), element, var, iterable, cond);
+        symbolTable.popScope();
+        return new GeneratorNode(line, element, var, varEntry, iterable, cond);
     }
 
     // -------------------------
@@ -376,6 +415,24 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<FlaskJinja2Visit
         String left = dotted.substring(0, idx);
         String right = dotted.substring(idx + 1);
         return new String[]{left, right};
+    }
+
+    private SymbolTable.SymbolEntry defineInCurrentScope(String name, SymbolTable.SymbolKind kind, int line) {
+        SymbolTable.SymbolEntry entry = symbolTable.resolveCurrent(name);
+        if (entry == null) {
+            return symbolTable.define(name, kind, line);
+        }
+        return entry;
+    }
+
+    private void recordImportSymbols(List<String> names, String pkg, String raw, int line, boolean fromImport) {
+        for (String n : names) {
+            SymbolTable.SymbolEntry entry = defineInCurrentScope(n, SymbolTable.SymbolKind.IMPORT, line);
+            if (entry != null) {
+                if (fromImport) entry.setAttribute("from", pkg);
+                entry.setAttribute("raw", raw);
+            }
+        }
     }
 
     // ============================================================
@@ -557,11 +614,16 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<FlaskJinja2Visit
 
     public static final class IdentifierNode extends ExprNode {
         public final String name;
+        private SymbolTable.SymbolEntry symbol;
         public IdentifierNode(int line, String name) {
             super("Identifier", line);
             this.name = name;
         }
-        @Override protected String describe() { return name; }
+        public void setSymbol(SymbolTable.SymbolEntry symbol) { this.symbol = symbol; }
+        @Override protected String describe() {
+            if (symbol != null) return name + "@" + symbol.getScopeName();
+            return name;
+        }
     }
 
     public static final class StringNode extends ExprNode {
@@ -698,11 +760,13 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<FlaskJinja2Visit
 
     public static final class GeneratorNode extends ExprNode {
         public final String var;
-        public GeneratorNode(int line, AstNode element, String var, AstNode iterable, AstNode cond) {
+        public GeneratorNode(int line, AstNode element, String var, SymbolTable.SymbolEntry loopSymbol, AstNode iterable, AstNode cond) {
             super("GeneratorExpr", line);
             this.var = var;
             add(element);
-            add(new IdentifierNode(line, var));
+            IdentifierNode loopVar = new IdentifierNode(line, var);
+            loopVar.setSymbol(loopSymbol);
+            add(loopVar);
             add(iterable);
             if (cond != null) add(cond);
         }

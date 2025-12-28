@@ -38,5 +38,8 @@ public class Main {
 
         System.out.println("\n=== AST TREE ===");
         System.out.println(ast.pretty());
+
+        System.out.println("\n=== SYMBOL TABLE ===");
+        System.out.println(v.getSymbolTable().format());
     }
 }
