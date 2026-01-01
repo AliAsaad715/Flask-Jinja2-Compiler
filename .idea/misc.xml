@@ -6,7 +6,7 @@
         <PerGrammarGenerationSettings>
           <option name="fileName" value="$PROJECT_DIR$/src/antlr/PythonLexer.g4" />
           <option name="autoGen" value="true" />
-          <option name="outputDir" value="C:\Users\LEGION\IdeaProjects\Flask-Jinja2-Compiler\sr" />
+          <option name="outputDir" value="C:\Users\LEGION\IdeaProjects\Flask-Jinja2-Compiler\src" />
           <option name="libDir" value="" />
           <option name="encoding" value="" />
           <option name="pkg" value="" />
@@ -16,7 +16,7 @@
         <PerGrammarGenerationSettings>
           <option name="fileName" value="$PROJECT_DIR$/src/antlr/PythonParser.g4" />
           <option name="autoGen" value="true" />
-          <option name="outputDir" value="C:\Users\LEGION\IdeaProjects\Flask-Jinja2-Compiler\sr" />
+          <option name="outputDir" value="C:\Users\LEGION\IdeaProjects\Flask-Jinja2-Compiler\src" />
           <option name="libDir" value="" />
           <option name="encoding" value="" />
           <option name="pkg" value="" />
@@ -26,7 +26,7 @@
       </list>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_24" default="true" project-jdk-name="openjdk-24" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_20" default="true" project-jdk-name="openjdk-24" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
 </project>

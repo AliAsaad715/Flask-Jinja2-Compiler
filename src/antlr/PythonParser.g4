@@ -5,14 +5,14 @@ options { tokenVocab=PythonLexer; }
 program : stmt* EOF ;
 
 stmt
-    : import_stmt
-    | assign_stmt
-    | decorated_funcdef
-    | funcdef
-    | if_stmt
-    | return_stmt
-    | expr_stmt
-    | NEWLINE
+    : import_stmt        #StmtImport
+    | assign_stmt        #StmtAssign
+    | decorated_funcdef  #StmtDecoratedFuncdef
+    | funcdef            #StmtFuncdef
+    | if_stmt            #StmtIf
+    | return_stmt        #StmtReturn
+    | expr_stmt          #StmtExpr
+    | NEWLINE            #StmtNewline
     ;
 
 return_stmt
@@ -20,8 +20,8 @@ return_stmt
     ;
 
 import_stmt
-    : FROM dotted_name IMPORT dotted_name (COMMA dotted_name)* end_stmt
-    | IMPORT dotted_name (COMMA dotted_name)* end_stmt
+    : FROM dotted_name IMPORT dotted_name (COMMA dotted_name)* end_stmt  #ImportFrom
+    | IMPORT dotted_name (COMMA dotted_name)* end_stmt                   #ImportDirect
     ;
 
 dotted_name
@@ -33,8 +33,8 @@ assign_stmt
     ;
 
 end_stmt
-    : NEWLINE
-    | EOF
+    : NEWLINE  #EndNewline
+    | EOF      #EndEOF
     ;
 
 assign_target
@@ -42,8 +42,8 @@ assign_target
     ;
 
 trailer_no_call
-    : DOT ID
-    | LBRACK expr RBRACK
+    : DOT ID                #TrailerNoCallAttr
+    | LBRACK expr RBRACK     #TrailerNoCallIndex
     ;
 
 decorated_funcdef
@@ -87,8 +87,8 @@ and_test
     ;
 
 not_test
-    : NOT not_test
-    | comparison
+    : NOT not_test   #NotUnary
+    | comparison     #NotComparison
     ;
 
 comparison
@@ -96,10 +96,10 @@ comparison
     ;
 
 comp_op
-    : EQEQ
-    | NOTEQ
-    | IN
-    | IS
+    : EQEQ   #CompEq
+    | NOTEQ  #CompNotEq
+    | IN     #CompIn
+    | IS     #CompIs
     ;
 
 arith_expr
@@ -111,9 +111,9 @@ atom_expr
     ;
 
 trailer
-    : DOT ID
-    | OPEN_B arglist? CLOSE_B
-    | LBRACK expr RBRACK
+    : DOT ID                    #TrailerAttr
+    | OPEN_B arglist? CLOSE_B    #TrailerCall
+    | LBRACK expr RBRACK         #TrailerIndex
     ;
 
 arglist
@@ -121,21 +121,21 @@ arglist
     ;
 
 argument
-    : ID EQUAL expr
-    | expr
+    : ID EQUAL expr   #ArgKeyword
+    | expr            #ArgPositional
     ;
 
 atom
-    : ID
-    | STRING
-    | INT_VALUE
-    | FLOAT_VALUE
-    | NONE
-    | TRUE
-    | FALSE
-    | list_literal
-    | dict_or_set_literal
-    | OPEN_B (gen_expr | expr)? CLOSE_B
+    : ID                                #AtomId
+    | STRING                            #AtomString
+    | INT_VALUE                         #AtomInt
+    | FLOAT_VALUE                       #AtomFloat
+    | NONE                              #AtomNone
+    | TRUE                              #AtomTrue
+    | FALSE                             #AtomFalse
+    | list_literal                      #AtomList
+    | dict_or_set_literal               #AtomDictOrSet
+    | OPEN_B (gen_expr | expr)? CLOSE_B #AtomParen
     ;
 
 gen_expr
