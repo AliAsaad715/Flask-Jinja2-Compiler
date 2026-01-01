@@ -1,4 +1,4 @@
-// Generated from C:/Users/LEGION/IdeaProjects/Flask-Jinja2-Compiler/src/antlr/PythonLexer.g4 by ANTLR 4.13.2
+// Generated from C:/Users/EVO.store/IdeaProjects/Flask_Jinja2_Compiler/src/antlr/PythonLexer.g4 by ANTLR 4.13.2
 package antlr;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
@@ -113,11 +113,23 @@ public class PythonLexer extends Lexer {
 
 	            if (!pendingTokens.isEmpty()) {
 	                org.antlr.v4.runtime.Token t = pendingTokens.poll();
-	                lastToken = t;
+
+	                if (t.getChannel() == org.antlr.v4.runtime.Token.DEFAULT_CHANNEL) {
+	                    lastToken = t;
+	                }
 	                return t;
 	            }
 
 	            org.antlr.v4.runtime.Token next = super.nextToken();
+
+	            if (next.getChannel() == org.antlr.v4.runtime.Token.DEFAULT_CHANNEL
+	                    && indents.size() == 1
+	                    && (lastToken == null || lastToken.getType() == NEWLINE)
+	                    && next.getCharPositionInLine() > 0
+	                    && next.getType() != NEWLINE
+	                    && next.getType() != EOF) {
+	                throw new RuntimeException("IndentationError: unexpected indent at line " + next.getLine());
+	            }
 
 	            if (next.getType() == EOF) {
 
@@ -125,7 +137,6 @@ public class PythonLexer extends Lexer {
 	                    pendingTokens.add(commonToken(NEWLINE, "\n"));
 	                }
 
-	                // emit remaining DEDENTs before EOF
 	                while (indents.size() > 1) {
 	                    indents.pop();
 	                    pendingTokens.add(commonToken(DEDENT, ""));
@@ -133,13 +144,20 @@ public class PythonLexer extends Lexer {
 
 	                pendingTokens.add(next);
 	                org.antlr.v4.runtime.Token t = pendingTokens.poll();
-	                lastToken = t;
+
+	                if (t.getChannel() == org.antlr.v4.runtime.Token.DEFAULT_CHANNEL) {
+	                    lastToken = t;
+	                }
 	                return t;
 	            }
 
-	            lastToken = next;
+	            if (next.getChannel() == org.antlr.v4.runtime.Token.DEFAULT_CHANNEL) {
+	                lastToken = next;
+	            }
+
 	            return next;
 	        }
+
 
 	    private org.antlr.v4.runtime.CommonToken commonToken(int type, String text) {
 	        org.antlr.v4.runtime.CommonToken t =
@@ -222,7 +240,7 @@ public class PythonLexer extends Lexer {
 	private void CLOSE_B_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 1:
-			opened--;
+			 if (opened > 0) opened--; 
 			break;
 		}
 	}
@@ -236,7 +254,7 @@ public class PythonLexer extends Lexer {
 	private void RBRACK_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 3:
-			opened--;
+			 if (opened > 0) opened--; 
 			break;
 		}
 	}
@@ -250,7 +268,7 @@ public class PythonLexer extends Lexer {
 	private void RBRACE_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 5:
-			opened--;
+			 if (opened > 0) opened--; 
 			break;
 		}
 	}
@@ -263,7 +281,6 @@ public class PythonLexer extends Lexer {
 
 			        int next = _input.LA(1);
 
-			        // If inside (), [], {} OR blank/comment-only line: ignore newline
 			        if (opened > 0 || next == '\r' || next == '\n' || next == '#' || next == EOF) {
 			            skip();
 			        } else {
@@ -272,15 +289,34 @@ public class PythonLexer extends Lexer {
 			            int indent = getIndentationCount(spaces);
 			            int prev = indents.peek();
 
+			            if (lastToken != null && lastToken.getType() == COLON && indent <= prev) {
+			                throw new RuntimeException(
+			                    "IndentationError: expected an indented block at line " + getLine()
+			                );
+			            }
+
 			            if (indent > prev) {
+
+			                if (lastToken == null || lastToken.getType() != COLON) {
+			                    throw new RuntimeException(
+			                        "IndentationError: unexpected indent at line " + getLine()
+			                    );
+			                }
 			                indents.push(indent);
 			                pendingTokens.add(commonToken(INDENT, ""));
+
 			            } else if (indent < prev) {
 			                while (indents.size() > 1 && indent < indents.peek()) {
 			                    indents.pop();
 			                    pendingTokens.add(commonToken(DEDENT, ""));
 			                }
+			                if (indent != indents.peek()) {
+			                    throw new RuntimeException(
+			                        "IndentationError: unindent does not match any outer indentation level at line " + getLine()
+			                    );
+			                }
 			            }
+
 			        }
 			      
 			break;

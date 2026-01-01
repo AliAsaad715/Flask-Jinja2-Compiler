@@ -1,5 +1,6 @@
 package app;
 
+import AST.AstNode;
 import antlr.PythonLexer;
 import antlr.PythonParser;
 import org.antlr.v4.runtime.*;
@@ -10,7 +11,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
 
         // Choose test file
-        String file = (args.length > 0) ? args[0] : "Tests/products_html.txt";
+        String file = (args.length > 0) ? args[0] : "Tests/app_py.txt";
 
         CharStream input = CharStreams.fromFileName(file);
 
@@ -22,7 +23,7 @@ public class Main {
         for (Token t : tokens.getTokens()) {
             String type = PythonLexer.VOCABULARY.getSymbolicName(t.getType());
             System.out.printf("%-12s line=%-3d col=%-3d text=%s%n",
-                    type, t.getLine(), t.getCharPositionInLine(), t.getText().replace("\n","\\n"));
+                    type, t.getLine(), t.getCharPositionInLine(), t.getText().replace("\n", "\\n"));
         }
 
         // (2) Parse and print parse tree
@@ -34,9 +35,12 @@ public class Main {
 
 // Build + print AST
         FlaskJinja2Visitor v = new FlaskJinja2Visitor(tokens);
-        FlaskJinja2Visitor.AstNode ast = v.visit(tree);
+        AstNode ast = v.visit(tree);
 
         System.out.println("\n=== AST TREE ===");
         System.out.println(ast.pretty());
+
+        System.out.println("\n=== SYMBOL TABLE ===");
+        System.out.println(v.getSymbolTable().format());
     }
 }

@@ -1,24 +1,32 @@
 package Visitor;
 
+import AST.*;
 import antlr.PythonParser;
 import antlr.PythonParserBaseVisitor;
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
+import symbol.SymbolTable;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class FlaskJinja2Visitor extends PythonParserBaseVisitor<FlaskJinja2Visitor.AstNode> {
+public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
 
     private final BufferedTokenStream tokens;
+    private final SymbolTable symbolTable;
     private ProgramNode programRoot; // stored correctly at end of execution
 
     public FlaskJinja2Visitor(BufferedTokenStream tokens) {
         this.tokens = tokens;
+        this.symbolTable = new SymbolTable();
     }
 
     public ProgramNode getProgramRoot() {
         return programRoot;
+    }
+
+    public SymbolTable getSymbolTable() {
+        return symbolTable;
     }
 
     // -------------------------
@@ -65,27 +73,36 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<FlaskJinja2Visit
         //  | IMPORT dotted_name (COMMA dotted_name)* NEWLINE
         String raw = textOf(ctx);
         List<String> names = new ArrayList<>();
+        int line = lineOf(ctx);
 
         if (ctx.FROM() != null) {
             String pkg = textOf(ctx.dotted_name(0));
             for (int i = 1; i < ctx.dotted_name().size(); i++) {
                 names.add(textOf(ctx.dotted_name(i)));
             }
-            return new ImportNode(lineOf(ctx), "from", pkg, names, raw);
+            recordImportSymbols(names, pkg, raw, line, true);
+            return new ImportNode(line, "from", pkg, names, raw);
         } else {
             for (int i = 0; i < ctx.dotted_name().size(); i++) {
                 names.add(textOf(ctx.dotted_name(i)));
             }
-            return new ImportNode(lineOf(ctx), "import", null, names, raw);
+            recordImportSymbols(names, null, raw, line, false);
+            return new ImportNode(line, "import", null, names, raw);
         }
     }
 
     @Override
     public AstNode visitAssign_stmt(PythonParser.Assign_stmtContext ctx) {
         // assign_stmt : assign_target EQUAL expr NEWLINE
+        int line = lineOf(ctx);
         String target = textOf(ctx.assign_target()); // supports: app.config['UPLOAD_FOLDER']
+        String baseName = ctx.assign_target().ID().getText();
         AstNode value = visit(ctx.expr());
-        return new AssignNode(lineOf(ctx), target, value);
+        SymbolTable.SymbolEntry entry = defineInCurrentScope(baseName, SymbolTable.SymbolKind.VARIABLE, line);
+        if (entry != null) {
+            entry.setAttribute("target", target);
+        }
+        return new AssignNode(line, target, value);
     }
 
     @Override
@@ -151,7 +168,11 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<FlaskJinja2Visit
     public AstNode visitFuncdef(PythonParser.FuncdefContext ctx) {
         // funcdef : DEFINETION ID OPEN_B params? CLOSE_B COLON suite
         String name = ctx.ID().getText();
-        FunctionNode fn = new FunctionNode(lineOf(ctx), name);
+        int line = lineOf(ctx);
+        FunctionNode fn = new FunctionNode(line, name);
+        SymbolTable.SymbolEntry fnEntry = defineInCurrentScope(name, SymbolTable.SymbolKind.FUNCTION, line);
+
+        symbolTable.pushScope("func " + name);
 
         if (ctx.params() != null) {
             ParamsNode params = (ParamsNode) visit(ctx.params());
@@ -159,13 +180,22 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<FlaskJinja2Visit
         }
 
         fn.body = (BlockNode) visit(ctx.suite());
+        symbolTable.popScope();
+
+        if (fnEntry != null) {
+            fnEntry.setAttribute("params", new ArrayList<>(fn.parameters));
+        }
         return fn;
     }
 
     @Override
     public AstNode visitParams(PythonParser.ParamsContext ctx) {
         ParamsNode p = new ParamsNode(lineOf(ctx));
-        for (int i = 0; i < ctx.ID().size(); i++) p.names.add(ctx.ID(i).getText());
+        for (int i = 0; i < ctx.ID().size(); i++) {
+            String paramName = ctx.ID(i).getText();
+            p.names.add(paramName);
+            defineInCurrentScope(paramName, SymbolTable.SymbolKind.PARAMETER, ctx.ID(i).getSymbol().getLine());
+        }
         return p;
     }
 
@@ -295,13 +325,19 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<FlaskJinja2Visit
 
     @Override
     public AstNode visitAtom(PythonParser.AtomContext ctx) {
-        if (ctx.ID() != null) return new IdentifierNode(lineOf(ctx), ctx.ID().getText());
-        if (ctx.STRING() != null) return new StringNode(lineOf(ctx), stripQuotes(ctx.STRING().getText()));
-        if (ctx.INT_VALUE() != null) return new NumberNode(lineOf(ctx), ctx.INT_VALUE().getText());
-        if (ctx.FLOAT_VALUE() != null) return new NumberNode(lineOf(ctx), ctx.FLOAT_VALUE().getText());
-        if (ctx.NONE() != null) return new NoneNode(lineOf(ctx));
-        if (ctx.TRUE() != null) return new BoolNode(lineOf(ctx), true);
-        if (ctx.FALSE() != null) return new BoolNode(lineOf(ctx), false);
+        int line = lineOf(ctx);
+        if (ctx.ID() != null) {
+            String name = ctx.ID().getText();
+            IdentifierNode node = new IdentifierNode(line, name);
+            node.setSymbol(symbolTable.resolve(name, line));
+            return node;
+        }
+        if (ctx.STRING() != null) return new StringNode(line, stripQuotes(ctx.STRING().getText()));
+        if (ctx.INT_VALUE() != null) return new NumberNode(line, ctx.INT_VALUE().getText());
+        if (ctx.FLOAT_VALUE() != null) return new NumberNode(line, ctx.FLOAT_VALUE().getText());
+        if (ctx.NONE() != null) return new NoneNode(line);
+        if (ctx.TRUE() != null) return new BoolNode(line, true);
+        if (ctx.FALSE() != null) return new BoolNode(line, false);
 
         if (ctx.list_literal() != null) return visit(ctx.list_literal());
         if (ctx.dict_or_set_literal() != null) return visit(ctx.dict_or_set_literal());
@@ -340,11 +376,15 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<FlaskJinja2Visit
 
     @Override
     public AstNode visitGen_expr(PythonParser.Gen_exprContext ctx) {
-        AstNode element = visit(ctx.expr(0));
         String var = ctx.ID().getText();
+        int line = lineOf(ctx);
         AstNode iterable = visit(ctx.expr(1));
+        symbolTable.pushScope("genexpr");
+        SymbolTable.SymbolEntry varEntry = symbolTable.define(var, SymbolTable.SymbolKind.VARIABLE, line);
+        AstNode element = visit(ctx.expr(0));
         AstNode cond = (ctx.expr().size() > 2) ? visit(ctx.expr(2)) : null;
-        return new GeneratorNode(lineOf(ctx), element, var, iterable, cond);
+        symbolTable.popScope();
+        return new GeneratorNode(line, element, var, varEntry, iterable, cond);
     }
 
     // -------------------------
@@ -378,355 +418,21 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<FlaskJinja2Visit
         return new String[]{left, right};
     }
 
-    // ============================================================
-    // AST Node Hierarchy (OOP + inheritance + polymorphism)
-    // ============================================================
-
-    public static abstract class AstNode {
-        public final String nodeName;
-        public final int line;
-        public final List<AstNode> children = new ArrayList<>();
-
-        protected AstNode(String nodeName, int line) {
-            this.nodeName = nodeName;
-            this.line = line;
+    private SymbolTable.SymbolEntry defineInCurrentScope(String name, SymbolTable.SymbolKind kind, int line) {
+        SymbolTable.SymbolEntry entry = symbolTable.resolveCurrent(name);
+        if (entry == null) {
+            return symbolTable.define(name, kind, line);
         }
+        return entry;
+    }
 
-        public void add(AstNode child) {
-            if (child != null) children.add(child);
-        }
-
-        protected String describe() { return ""; }
-
-        public final String pretty() {
-            StringBuilder sb = new StringBuilder();
-            prettyInto(sb, "", true);
-            return sb.toString();
-        }
-
-        private void prettyInto(StringBuilder sb, String indent, boolean last) {
-            sb.append(indent);
-            sb.append(last ? "└── " : "├── ");
-            sb.append(nodeName).append(" (line ").append(line).append(")");
-            String d = describe();
-            if (d != null && !d.isBlank()) sb.append(" : ").append(d);
-            sb.append("\n");
-
-            String childIndent = indent + (last ? "    " : "│   ");
-            for (int i = 0; i < children.size(); i++) {
-                children.get(i).prettyInto(sb, childIndent, i == children.size() - 1);
+    private void recordImportSymbols(List<String> names, String pkg, String raw, int line, boolean fromImport) {
+        for (String n : names) {
+            SymbolTable.SymbolEntry entry = defineInCurrentScope(n, SymbolTable.SymbolKind.IMPORT, line);
+            if (entry != null) {
+                if (fromImport) entry.setAttribute("from", pkg);
+                entry.setAttribute("raw", raw);
             }
         }
-    }
-
-    public static final class ProgramNode extends AstNode {
-        public ProgramNode(int line) { super("Program", line); }
-    }
-
-    public static final class ImportNode extends AstNode {
-        public final String kind;
-        public final String packageName;
-        public final List<String> names;
-        public final String raw;
-
-        public ImportNode(int line, String kind, String packageName, List<String> names, String raw) {
-            super("Import", line);
-            this.kind = kind;
-            this.packageName = packageName;
-            this.names = names;
-            this.raw = raw;
-        }
-
-        @Override protected String describe() {
-            if ("from".equals(kind)) return "from " + packageName + " import " + names;
-            return "import " + names;
-        }
-    }
-
-    public static final class AssignNode extends AstNode {
-        public final String target;
-
-        public AssignNode(int line, String target, AstNode value) {
-            super("Assign", line);
-            this.target = target;
-            add(value);
-        }
-
-        @Override protected String describe() { return target + " = ..."; }
-    }
-
-    public static final class RouteNode extends AstNode {
-        public DecoratorNode decorator;
-        public FunctionNode function;
-
-        public RouteNode(int line) { super("Route", line); }
-
-        public void setDecorator(DecoratorNode decorator) {
-            this.decorator = decorator;
-            if (decorator != null) add(decorator);
-        }
-
-        public void setFunction(FunctionNode function) {
-            this.function = function;
-            if (function != null) add(function);
-        }
-
-        @Override protected String describe() {
-            if (decorator != null) return decorator.objectName + "." + decorator.methodName + "(" + decorator.path + ")";
-            return "";
-        }
-    }
-
-    public static final class DecoratedFunctionNode extends AstNode {
-        public final List<DecoratorNode> decorators = new ArrayList<>();
-        public FunctionNode function;
-
-        public DecoratedFunctionNode(int line) { super("DecoratedFunction", line); }
-
-        public void addDecorator(DecoratorNode d) {
-            decorators.add(d);
-            add(d);
-        }
-
-        public void setFunction(FunctionNode f) {
-            this.function = f;
-            add(f);
-        }
-    }
-
-    public static final class ArgsNode extends AstNode {
-        public ArgsNode(int line) { super("Args", line); }
-        @Override protected String describe() { return "arguments"; }
-    }
-
-    public static final class DecoratorNode extends AstNode {
-        public final String objectName; // may be "" if none
-        public final String methodName;
-        public final String path;
-
-        public DecoratorNode(int line, String objectName, String methodName, String path) {
-            super("Decorator", line);
-            this.objectName = objectName;
-            this.methodName = methodName;
-            this.path = path;
-        }
-
-        @Override protected String describe() {
-            String head = objectName == null || objectName.isBlank() ? methodName : (objectName + "." + methodName);
-            return "@" + head + "(" + (path == null ? "" : ("'" + path + "'")) + ")";
-        }
-    }
-
-    public static final class FunctionNode extends AstNode {
-        public final String name;
-        public final List<String> parameters = new ArrayList<>();
-        public BlockNode body;
-
-        public FunctionNode(int line, String name) {
-            super("Function", line);
-            this.name = name;
-        }
-
-        @Override protected String describe() {
-            return name + "(" + parameters + ")";
-        }
-    }
-
-    public static final class ParamsNode extends AstNode {
-        public final List<String> names = new ArrayList<>();
-        public ParamsNode(int line) { super("Params", line); }
-        @Override protected String describe() { return names.toString(); }
-    }
-
-    public static final class BlockNode extends AstNode {
-        public BlockNode(int line) { super("Block", line); }
-    }
-
-    public static final class ExprStmtNode extends AstNode {
-        public ExprStmtNode(int line, AstNode expr) {
-            super("ExprStmt", line);
-            add(expr);
-        }
-    }
-
-    // -------- Expressions (polymorphic) --------
-
-    public static abstract class ExprNode extends AstNode {
-        protected ExprNode(String nodeName, int line) { super(nodeName, line); }
-    }
-
-    public static final class IdentifierNode extends ExprNode {
-        public final String name;
-        public IdentifierNode(int line, String name) {
-            super("Identifier", line);
-            this.name = name;
-        }
-        @Override protected String describe() { return name; }
-    }
-
-    public static final class StringNode extends ExprNode {
-        public final String value;
-        public StringNode(int line, String value) {
-            super("String", line);
-            this.value = value;
-        }
-        @Override protected String describe() { return "\"" + value + "\""; }
-    }
-
-    public static final class AttributeNode extends ExprNode {
-        public final String attr;
-        public AttributeNode(int line, AstNode base, String attr) {
-            super("Attribute", line);
-            this.attr = attr;
-            add(base);
-        }
-        @Override protected String describe() { return "." + attr; }
-    }
-
-    public static final class CallNode extends ExprNode {
-        public CallNode(int line, AstNode callee, List<AstNode> args) {
-            super("Call", line);
-            add(callee);
-            if (args != null) for (AstNode a : args) add(a);
-        }
-    }
-
-    public static final class ReturnNode extends AstNode {
-        public ReturnNode(int line) {
-            super("Return", line);
-        }
-        public ReturnNode(int line, AstNode value) { // keep old signature compatibility
-            super("Return", line);
-            add(value);
-        }
-        public void addValue(AstNode v) { add(v); }
-        @Override protected String describe() { return "return"; }
-    }
-
-    public static final class ErrorExprNode extends ExprNode {
-        public final String message;
-        public ErrorExprNode(int line, String message) {
-            super("ErrorExpr", line);
-            this.message = message;
-        }
-        @Override protected String describe() { return message; }
-    }
-
-    public static final class NumberNode extends ExprNode {
-        public final String literal;
-        public NumberNode(int line, String literal) {
-            super("Number", line);
-            this.literal = literal;
-        }
-        @Override protected String describe() { return literal; }
-    }
-
-    public static final class NoneNode extends ExprNode {
-        public NoneNode(int line) { super("None", line); }
-        @Override protected String describe() { return "None"; }
-    }
-
-    public static final class BoolNode extends ExprNode {
-        public final boolean value;
-        public BoolNode(int line, boolean value) {
-            super("Bool", line);
-            this.value = value;
-        }
-        @Override protected String describe() { return Boolean.toString(value); }
-    }
-
-    public static final class ListNode extends ExprNode {
-        public ListNode(int line) { super("List", line); }
-    }
-
-    public static final class SetNode extends ExprNode {
-        public SetNode(int line) { super("Set", line); }
-    }
-
-    public static final class DictNode extends ExprNode {
-        public DictNode(int line) { super("Dict", line); }
-    }
-
-    public static final class PairNode extends ExprNode {
-        public PairNode(int line, AstNode key, AstNode value) {
-            super("Pair", line);
-            add(key);
-            add(value);
-        }
-        @Override protected String describe() { return "key:value"; }
-    }
-
-    public static final class SubscriptNode extends ExprNode {
-        public SubscriptNode(int line, AstNode base, AstNode index) {
-            super("Subscript", line);
-            add(base);
-            add(index);
-        }
-        @Override protected String describe() { return "[]"; }
-    }
-
-    public static final class KeywordArgNode extends ExprNode {
-        public final String name;
-        public KeywordArgNode(int line, String name, AstNode value) {
-            super("KeywordArg", line);
-            this.name = name;
-            add(value);
-        }
-        @Override protected String describe() { return name + " = ..."; }
-    }
-
-    public static final class UnaryOpNode extends ExprNode {
-        public final String op;
-        public UnaryOpNode(int line, String op, AstNode operand) {
-            super("UnaryOp", line);
-            this.op = op;
-            add(operand);
-        }
-        @Override protected String describe() { return op; }
-    }
-
-    public static final class BinaryOpNode extends ExprNode {
-        public final String op;
-        public BinaryOpNode(int line, String op, AstNode left, AstNode right) {
-            super("BinaryOp", line);
-            this.op = op;
-            add(left);
-            add(right);
-        }
-        @Override protected String describe() { return op; }
-    }
-
-    public static final class GeneratorNode extends ExprNode {
-        public final String var;
-        public GeneratorNode(int line, AstNode element, String var, AstNode iterable, AstNode cond) {
-            super("GeneratorExpr", line);
-            this.var = var;
-            add(element);
-            add(new IdentifierNode(line, var));
-            add(iterable);
-            if (cond != null) add(cond);
-        }
-        @Override protected String describe() { return "for " + var + " in ..."; }
-    }
-
-    public static final class IfNode extends AstNode {
-        private BlockNode elseBlock;
-
-        public IfNode(int line, AstNode condition, BlockNode thenBlock) {
-            super("If", line);
-            add(condition);
-            add(thenBlock);
-        }
-
-        public void addElif(IfNode elif) {
-            add(elif);
-        }
-
-        public void setElse(BlockNode elseBlock) {
-            this.elseBlock = elseBlock;
-            add(elseBlock);
-        }
-
-        @Override protected String describe() { return "if ..."; }
     }
 }

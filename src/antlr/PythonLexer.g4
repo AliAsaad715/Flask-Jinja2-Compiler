@@ -20,11 +20,23 @@ tokens { INDENT, DEDENT }
 
             if (!pendingTokens.isEmpty()) {
                 org.antlr.v4.runtime.Token t = pendingTokens.poll();
-                lastToken = t;
+
+                if (t.getChannel() == org.antlr.v4.runtime.Token.DEFAULT_CHANNEL) {
+                    lastToken = t;
+                }
                 return t;
             }
 
             org.antlr.v4.runtime.Token next = super.nextToken();
+
+            if (next.getChannel() == org.antlr.v4.runtime.Token.DEFAULT_CHANNEL
+                    && indents.size() == 1
+                    && (lastToken == null || lastToken.getType() == NEWLINE)
+                    && next.getCharPositionInLine() > 0
+                    && next.getType() != NEWLINE
+                    && next.getType() != EOF) {
+                throw new RuntimeException("IndentationError: unexpected indent at line " + next.getLine());
+            }
 
             if (next.getType() == EOF) {
 
@@ -32,7 +44,6 @@ tokens { INDENT, DEDENT }
                     pendingTokens.add(commonToken(NEWLINE, "\n"));
                 }
 
-                // emit remaining DEDENTs before EOF
                 while (indents.size() > 1) {
                     indents.pop();
                     pendingTokens.add(commonToken(DEDENT, ""));
@@ -40,13 +51,20 @@ tokens { INDENT, DEDENT }
 
                 pendingTokens.add(next);
                 org.antlr.v4.runtime.Token t = pendingTokens.poll();
-                lastToken = t;
+
+                if (t.getChannel() == org.antlr.v4.runtime.Token.DEFAULT_CHANNEL) {
+                    lastToken = t;
+                }
                 return t;
             }
 
-            lastToken = next;
+            if (next.getChannel() == org.antlr.v4.runtime.Token.DEFAULT_CHANNEL) {
+                lastToken = next;
+            }
+
             return next;
         }
+
 
     private org.antlr.v4.runtime.CommonToken commonToken(int type, String text) {
         org.antlr.v4.runtime.CommonToken t =
@@ -70,7 +88,7 @@ tokens { INDENT, DEDENT }
     }
 }
 
-// -------------------- Keywords (only what you need) --------------------
+
 FROM: 'from';
 IMPORT: 'import';
 AS: 'as';
@@ -82,7 +100,7 @@ IF: 'if';
 ELIF: 'elif';
 ELSE: 'else';
 
-FOR: 'for';        // needed for: (p for p in products if ...)
+FOR: 'for';
 IN: 'in';
 IS: 'is';
 
@@ -94,7 +112,7 @@ NONE: 'None';
 TRUE: 'True';
 FALSE: 'False';
 
-// -------------------- Operators & punctuation --------------------
+
 DECORATOR: '@';
 DOT: '.';
 COMMA: ',';
@@ -107,15 +125,15 @@ EQUAL: '=';
 PLUS: '+';
 
 OPEN_B: '(' {opened++;};
-CLOSE_B: ')' {opened--;};
+CLOSE_B: ')' { if (opened > 0) opened--; };
 
 LBRACK: '[' {opened++;};
-RBRACK: ']' {opened--;};
+RBRACK: ']' { if (opened > 0) opened--; };
 
 LBRACE: '{' {opened++;};
-RBRACE: '}' {opened--;};
+RBRACE: '}' { if (opened > 0) opened--; };
 
-// -------------------- Literals --------------------
+
 FLOAT_VALUE: '-'? [0-9]+ '.' [0-9]+;
 
 INT_VALUE
@@ -123,20 +141,20 @@ INT_VALUE
     | '-'? [1-9] [0-9]*
     ;
 
-// Single OR double quoted strings
+
 STRING
     : '\'' ( '\\' . | ~['\\\r\n] )* '\''
     | '"'  ( '\\' . | ~["\\\r\n] )* '"'
     ;
 
-// -------------------- Identifiers --------------------
+
 ID: [a-zA-Z_][a-zA-Z0-9_]*;
 
-// -------------------- Line handling --------------------
+
 LINE_JOINING: '\\' [ \t]* ('\r'? '\n')+ -> skip;
 COMMENT: '#' ~[\r\n]* -> skip;
 
-// NEWLINE + INDENT/DEDENT
+
 NEWLINE
     : ('\r'? '\n')+ [ \t]*
       {
@@ -145,7 +163,6 @@ NEWLINE
 
         int next = _input.LA(1);
 
-        // If inside (), [], {} OR blank/comment-only line: ignore newline
         if (opened > 0 || next == '\r' || next == '\n' || next == '#' || next == EOF) {
             skip();
         } else {
@@ -154,18 +171,38 @@ NEWLINE
             int indent = getIndentationCount(spaces);
             int prev = indents.peek();
 
+            if (lastToken != null && lastToken.getType() == COLON && indent <= prev) {
+                throw new RuntimeException(
+                    "IndentationError: expected an indented block at line " + getLine()
+                );
+            }
+
             if (indent > prev) {
+
+                if (lastToken == null || lastToken.getType() != COLON) {
+                    throw new RuntimeException(
+                        "IndentationError: unexpected indent at line " + getLine()
+                    );
+                }
                 indents.push(indent);
                 pendingTokens.add(commonToken(INDENT, ""));
+
             } else if (indent < prev) {
                 while (indents.size() > 1 && indent < indents.peek()) {
                     indents.pop();
                     pendingTokens.add(commonToken(DEDENT, ""));
                 }
+                if (indent != indents.peek()) {
+                    throw new RuntimeException(
+                        "IndentationError: unindent does not match any outer indentation level at line " + getLine()
+                    );
+                }
             }
+
         }
       }
     ;
 
-// normal spaces (not indentation-leading spaces after NEWLINE)
 WS: [ \t]+ -> channel(HIDDEN);
+
+

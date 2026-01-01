@@ -1,4 +1,4 @@
-// Generated from C:/Users/LEGION/IdeaProjects/Flask-Jinja2-Compiler/src/antlr/PythonParser.g4 by ANTLR 4.13.2
+// Generated from C:/Users/EVO.store/IdeaProjects/Flask_Jinja2_Compiler/src/antlr/PythonParser.g4 by ANTLR 4.13.2
 package antlr;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
@@ -46,6 +46,12 @@ public interface PythonParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitAssign_stmt(PythonParser.Assign_stmtContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link PythonParser#end_stmt}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitEnd_stmt(PythonParser.End_stmtContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link PythonParser#assign_target}.
 	 * @param ctx the parse tree
@@ -178,6 +184,12 @@ public interface PythonParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitGen_expr(PythonParser.Gen_exprContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link PythonParser#nl}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitNl(PythonParser.NlContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link PythonParser#list_literal}.
 	 * @param ctx the parse tree

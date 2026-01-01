@@ -4,37 +4,37 @@ options { tokenVocab=PythonLexer; }
 
 program : stmt* EOF ;
 
-// =====================
-// Statements
-// =====================
-
 stmt
     : import_stmt
     | assign_stmt
     | decorated_funcdef
-    | funcdef                      // allow plain "def ..."
-    | if_stmt                      // allow if / elif / else
+    | funcdef
+    | if_stmt
     | return_stmt
     | expr_stmt
     | NEWLINE
     ;
 
 return_stmt
-    : RETURN expr (COMMA expr)* NEWLINE     // allow: return "x", 404
+    : RETURN expr (COMMA expr)* end_stmt
     ;
 
 import_stmt
-    : FROM dotted_name IMPORT dotted_name (COMMA dotted_name)* NEWLINE
-    | IMPORT dotted_name (COMMA dotted_name)* NEWLINE
+    : FROM dotted_name IMPORT dotted_name (COMMA dotted_name)* end_stmt
+    | IMPORT dotted_name (COMMA dotted_name)* end_stmt
     ;
 
 dotted_name
     : ID (DOT ID)*
     ;
 
-// allow targets like: app.config['UPLOAD_FOLDER'] = ...
 assign_stmt
-    : assign_target EQUAL expr NEWLINE
+    : assign_target EQUAL expr end_stmt
+    ;
+
+end_stmt
+    : NEWLINE
+    | EOF
     ;
 
 assign_target
@@ -46,14 +46,12 @@ trailer_no_call
     | LBRACK expr RBRACK
     ;
 
-// decorator supports args + keyword args:
-// @app.route('/x', methods=['GET','POST'])
 decorated_funcdef
     : decorator+ funcdef
     ;
 
 decorator
-    : DECORATOR dotted_name OPEN_B arglist? CLOSE_B NEWLINE
+    : DECORATOR dotted_name OPEN_B arglist? CLOSE_B end_stmt
     ;
 
 funcdef
@@ -73,12 +71,8 @@ if_stmt
     ;
 
 expr_stmt
-    : expr NEWLINE
+    : expr end_stmt
     ;
-
-// =====================
-// Expressions (subset used by app_py.txt)
-// =====================
 
 expr
     : or_test
@@ -144,25 +138,28 @@ atom
     | OPEN_B (gen_expr | expr)? CLOSE_B
     ;
 
-// generator expr used by: next((p for p in products if ...), None)
 gen_expr
     : expr FOR ID IN expr (IF expr)?
     ;
 
+nl : NEWLINE* ;
+
 list_literal
-    : LBRACK (expr (COMMA expr)* (COMMA)?)? RBRACK
+    : LBRACK nl
+        (expr (nl COMMA nl expr)*)?
+        (nl COMMA)?
+      nl RBRACK
     ;
 
-// dict: {'id': 1, ...}   set: {'png','jpg'}
 dict_or_set_literal
-    : LBRACE
+    : LBRACE nl
         (
-          dict_entry (COMMA dict_entry)* (COMMA)?
-        | expr (COMMA expr)* (COMMA)?
+          dict_entry (nl COMMA nl dict_entry)* (nl COMMA)?
+        | expr       (nl COMMA nl expr)*       (nl COMMA)?
         )?
-      RBRACE
+      nl RBRACE
     ;
 
 dict_entry
-    : expr COLON expr
+    : expr nl COLON nl expr
     ;
