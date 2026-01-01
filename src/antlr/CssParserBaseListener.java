@@ -1,4 +1,4 @@
-// Generated from C:/Users/noureddine/IdeaProjects/Flask-Jinja2-Compiler/src/antlr/CssParser.g4 by ANTLR 4.13.2
+// Generated from C:/Users/Abdulrahman_kwm/ProjectStudio/Flask-Jinja2-Compiler/src/antlr/CssParser.g4 by ANTLR 4.13.2
 package antlr;
 
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -96,6 +96,18 @@ public class CssParserBaseListener implements CssParserListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitSelComma(CssParser.SelCommaContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterSelPseudo(CssParser.SelPseudoContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitSelPseudo(CssParser.SelPseudoContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

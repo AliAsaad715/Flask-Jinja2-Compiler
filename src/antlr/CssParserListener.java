@@ -1,4 +1,4 @@
-// Generated from C:/Users/noureddine/IdeaProjects/Flask-Jinja2-Compiler/src/antlr/CssParser.g4 by ANTLR 4.13.2
+// Generated from C:/Users/Abdulrahman_kwm/ProjectStudio/Flask-Jinja2-Compiler/src/antlr/CssParser.g4 by ANTLR 4.13.2
 package antlr;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
@@ -89,6 +89,18 @@ public interface CssParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitSelComma(CssParser.SelCommaContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code SelPseudo}
+	 * labeled alternative in {@link CssParser#selectorPart}.
+	 * @param ctx the parse tree
+	 */
+	void enterSelPseudo(CssParser.SelPseudoContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code SelPseudo}
+	 * labeled alternative in {@link CssParser#selectorPart}.
+	 * @param ctx the parse tree
+	 */
+	void exitSelPseudo(CssParser.SelPseudoContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code Declaration}
 	 * labeled alternative in {@link CssParser#decl}.
