@@ -5,7 +5,7 @@ import antlr.PythonParser;
 import antlr.PythonParserBaseVisitor;
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
-import symbol.SymbolTable;
+import symbol.SymbolTablePython;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,25 +13,21 @@ import java.util.List;
 public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
 
     private final BufferedTokenStream tokens;
-    private final SymbolTable symbolTable;
-    private ProgramNode programRoot; // stored correctly at end of execution
+    private final SymbolTablePython symbolTable;
+    private ProgramNode programRoot;
 
     public FlaskJinja2Visitor(BufferedTokenStream tokens) {
         this.tokens = tokens;
-        this.symbolTable = new SymbolTable();
+        this.symbolTable = new SymbolTablePython();
     }
 
     public ProgramNode getProgramRoot() {
         return programRoot;
     }
 
-    public SymbolTable getSymbolTable() {
+    public SymbolTablePython getSymbolTable() {
         return symbolTable;
     }
-
-    // -------------------------
-    // Program / Statements
-    // -------------------------
 
     @Override
     public AstNode visitProgram(PythonParser.ProgramContext ctx) {
@@ -132,7 +128,7 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
         String target = textOf(ctx.assign_target());
         String baseName = ctx.assign_target().ID().getText();
         AstNode value = visit(ctx.expr());
-        SymbolTable.SymbolEntry entry = defineInCurrentScope(baseName, SymbolTable.SymbolKind.VARIABLE, line);
+        SymbolTablePython.SymbolEntry entry = defineInCurrentScope(baseName, SymbolTablePython.SymbolKind.VARIABLE, line);
         if (entry != null) {
             boolean isPlainNameAssignment = ctx.assign_target().trailer_no_call().isEmpty();
             if (isPlainNameAssignment) {
@@ -209,7 +205,7 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
         String name = ctx.ID().getText();
         int line = lineOf(ctx);
         FunctionNode fn = new FunctionNode(line, name);
-        SymbolTable.SymbolEntry fnEntry = defineInCurrentScope(name, SymbolTable.SymbolKind.FUNCTION, line);
+        SymbolTablePython.SymbolEntry fnEntry = defineInCurrentScope(name, SymbolTablePython.SymbolKind.FUNCTION, line);
 
         symbolTable.pushScope("func " + name);
 
@@ -234,7 +230,7 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
         for (int i = 0; i < ctx.ID().size(); i++) {
             String paramName = ctx.ID(i).getText();
             p.names.add(paramName);
-            defineInCurrentScope(paramName, SymbolTable.SymbolKind.PARAMETER, ctx.ID(i).getSymbol().getLine());
+            defineInCurrentScope(paramName, SymbolTablePython.SymbolKind.PARAMETER, ctx.ID(i).getSymbol().getLine());
         }
         return p;
     }
@@ -470,7 +466,7 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
         int line = lineOf(ctx);
         AstNode iterable = visit(ctx.expr(1));
         symbolTable.pushScope("genexpr");
-        SymbolTable.SymbolEntry varEntry = symbolTable.define(var, SymbolTable.SymbolKind.VARIABLE, line);
+        SymbolTablePython.SymbolEntry varEntry = symbolTable.define(var, SymbolTablePython.SymbolKind.VARIABLE, line);
         AstNode element = visit(ctx.expr(0));
         AstNode cond = (ctx.expr().size() > 2) ? visit(ctx.expr(2)) : null;
         symbolTable.popScope();
@@ -508,8 +504,8 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
         return new String[]{left, right};
     }
 
-    private SymbolTable.SymbolEntry defineInCurrentScope(String name, SymbolTable.SymbolKind kind, int line) {
-        SymbolTable.SymbolEntry entry = symbolTable.resolveCurrent(name);
+    private SymbolTablePython.SymbolEntry defineInCurrentScope(String name, SymbolTablePython.SymbolKind kind, int line) {
+        SymbolTablePython.SymbolEntry entry = symbolTable.resolveCurrent(name);
         if (entry == null) {
             return symbolTable.define(name, kind, line);
         }
@@ -518,7 +514,7 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
 
     private void recordImportSymbols(List<String> names, String pkg, String raw, int line, boolean fromImport) {
         for (String n : names) {
-            SymbolTable.SymbolEntry entry = defineInCurrentScope(n, SymbolTable.SymbolKind.IMPORT, line);
+            SymbolTablePython.SymbolEntry entry = defineInCurrentScope(n, SymbolTablePython.SymbolKind.IMPORT, line);
             if (entry != null) {
                 if (fromImport) entry.setAttribute("from", pkg);
                 entry.setAttribute("raw", raw);

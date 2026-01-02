@@ -1,7 +1,4 @@
-package symbol;
-
-import symbol.Scope;
-import symbol.SymbolKind;
+package Symbol;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -62,5 +59,4 @@ public class SymbolTable {
         }
         return sb.toString();
     }
-
 }
