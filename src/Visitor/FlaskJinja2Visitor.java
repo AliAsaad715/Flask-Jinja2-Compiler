@@ -45,16 +45,45 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
     }
 
     @Override
-    public AstNode visitStmt(PythonParser.StmtContext ctx) {
-        if (ctx.import_stmt() != null) return visit(ctx.import_stmt());
-        if (ctx.assign_stmt() != null) return visit(ctx.assign_stmt());
-        if (ctx.decorated_funcdef() != null) return visit(ctx.decorated_funcdef());
-        if (ctx.funcdef() != null) return visit(ctx.funcdef());       // NEW
-        if (ctx.if_stmt() != null) return visit(ctx.if_stmt());       // NEW
-        if (ctx.return_stmt() != null) return visit(ctx.return_stmt());
-        if (ctx.expr_stmt() != null) return visit(ctx.expr_stmt());
+    public AstNode visitStmtImport(PythonParser.StmtImportContext ctx) {
+        return visit(ctx.import_stmt());
+    }
+
+    @Override
+    public AstNode visitStmtAssign(PythonParser.StmtAssignContext ctx) {
+        return visit(ctx.assign_stmt());
+    }
+
+    @Override
+    public AstNode visitStmtDecoratedFuncdef(PythonParser.StmtDecoratedFuncdefContext ctx) {
+        return visit(ctx.decorated_funcdef());
+    }
+
+    @Override
+    public AstNode visitStmtFuncdef(PythonParser.StmtFuncdefContext ctx) {
+        return visit(ctx.funcdef());
+    }
+
+    @Override
+    public AstNode visitStmtIf(PythonParser.StmtIfContext ctx) {
+        return visit(ctx.if_stmt());
+    }
+
+    @Override
+    public AstNode visitStmtReturn(PythonParser.StmtReturnContext ctx) {
+        return visit(ctx.return_stmt());
+    }
+
+    @Override
+    public AstNode visitStmtExpr(PythonParser.StmtExprContext ctx) {
+        return visit(ctx.expr_stmt());
+    }
+
+    @Override
+    public AstNode visitStmtNewline(PythonParser.StmtNewlineContext ctx) {
         return null; // NEWLINE-only
     }
+
 
     @Override
     public AstNode visitReturn_stmt(PythonParser.Return_stmtContext ctx) {
@@ -67,41 +96,50 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
     }
 
     @Override
-    public AstNode visitImport_stmt(PythonParser.Import_stmtContext ctx) {
-        // import_stmt
-        //  : FROM dotted_name IMPORT dotted_name (COMMA dotted_name)* NEWLINE
-        //  | IMPORT dotted_name (COMMA dotted_name)* NEWLINE
+    public AstNode visitImportFrom(PythonParser.ImportFromContext ctx) {
         String raw = textOf(ctx);
         List<String> names = new ArrayList<>();
         int line = lineOf(ctx);
 
-        if (ctx.FROM() != null) {
-            String pkg = textOf(ctx.dotted_name(0));
-            for (int i = 1; i < ctx.dotted_name().size(); i++) {
-                names.add(textOf(ctx.dotted_name(i)));
-            }
-            recordImportSymbols(names, pkg, raw, line, true);
-            return new ImportNode(line, "from", pkg, names, raw);
-        } else {
-            for (int i = 0; i < ctx.dotted_name().size(); i++) {
-                names.add(textOf(ctx.dotted_name(i)));
-            }
-            recordImportSymbols(names, null, raw, line, false);
-            return new ImportNode(line, "import", null, names, raw);
+        String pkg = textOf(ctx.dotted_name(0));
+        for (int i = 1; i < ctx.dotted_name().size(); i++) {
+            names.add(textOf(ctx.dotted_name(i)));
         }
+
+        recordImportSymbols(names, pkg, raw, line, true);
+        return new ImportNode(line, "from", pkg, names, raw);
     }
+
+    @Override
+    public AstNode visitImportDirect(PythonParser.ImportDirectContext ctx) {
+        String raw = textOf(ctx);
+        List<String> names = new ArrayList<>();
+        int line = lineOf(ctx);
+
+        for (int i = 0; i < ctx.dotted_name().size(); i++) {
+            names.add(textOf(ctx.dotted_name(i)));
+        }
+
+        recordImportSymbols(names, null, raw, line, false);
+        return new ImportNode(line, "import", null, names, raw);
+    }
+
 
     @Override
     public AstNode visitAssign_stmt(PythonParser.Assign_stmtContext ctx) {
         // assign_stmt : assign_target EQUAL expr NEWLINE
         int line = lineOf(ctx);
-        String target = textOf(ctx.assign_target()); // supports: app.config['UPLOAD_FOLDER']
+        String target = textOf(ctx.assign_target());
         String baseName = ctx.assign_target().ID().getText();
         AstNode value = visit(ctx.expr());
         SymbolTable.SymbolEntry entry = defineInCurrentScope(baseName, SymbolTable.SymbolKind.VARIABLE, line);
         if (entry != null) {
-            entry.setAttribute("target", target);
+            boolean isPlainNameAssignment = ctx.assign_target().trailer_no_call().isEmpty();
+            if (isPlainNameAssignment) {
+                entry.setAttribute("target", target);
+            }
         }
+
         return new AssignNode(line, target, value);
     }
 
@@ -118,7 +156,6 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
         FunctionNode fn = (FunctionNode) visit(ctx.funcdef());
         node.setFunction(fn);
 
-        // Common Flask usage: route decorator -> RouteNode
         RouteNode route = new RouteNode(lineOf(ctx));
         if (!node.decorators.isEmpty()) {
             route.setDecorator(node.decorators.get(0));
@@ -130,24 +167,26 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
 
     @Override
     public AstNode visitDecorator(PythonParser.DecoratorContext ctx) {
-        // decorator : DECORATOR dotted_name OPEN_B arglist? CLOSE_B NEWLINE
-        String dotted = textOf(ctx.dotted_name()); // example: app.route
+        String dotted = textOf(ctx.dotted_name());
         String[] parts = splitLastDot(dotted);
         String obj = parts[0];
         String method = parts[1];
 
-        // for Flask: first positional arg is usually the route path string
         String path = "";
         if (ctx.arglist() != null && !ctx.arglist().argument().isEmpty()) {
             PythonParser.ArgumentContext a0 = ctx.arglist().argument(0);
-            // positional argument => a0.expr()
-            if (a0.expr() != null) {
-                AstNode n = visit(a0.expr());
+
+            if (a0 instanceof PythonParser.ArgPositionalContext) {
+                PythonParser.ArgPositionalContext pos = (PythonParser.ArgPositionalContext) a0;
+
+                AstNode n = visit(pos.expr());
                 if (n instanceof StringNode) path = ((StringNode) n).value;
-                else path = textOf(a0.expr());
+                else path = textOf(pos.expr());
+
             } else {
-                path = textOf(a0);
+                path = null;
             }
+
         }
 
         DecoratorNode dec = new DecoratorNode(lineOf(ctx), obj, method, path);
@@ -180,6 +219,7 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
         }
 
         fn.body = (BlockNode) visit(ctx.suite());
+        fn.add(fn.body);
         symbolTable.popScope();
 
         if (fnEntry != null) {
@@ -262,10 +302,12 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
     }
 
     @Override
-    public AstNode visitNot_test(PythonParser.Not_testContext ctx) {
-        if (ctx.NOT() != null) {
-            return new UnaryOpNode(lineOf(ctx), "not", visit(ctx.not_test()));
-        }
+    public AstNode visitNotUnary(PythonParser.NotUnaryContext ctx) {
+        return new UnaryOpNode(lineOf(ctx), "not", visit(ctx.not_test()));
+    }
+
+    @Override
+    public AstNode visitNotComparison(PythonParser.NotComparisonContext ctx) {
         return visit(ctx.comparison());
     }
 
@@ -295,57 +337,105 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
         if (current == null) current = new ErrorExprNode(lineOf(ctx), "null atom");
 
         for (PythonParser.TrailerContext tr : ctx.trailer()) {
-            if (tr.DOT() != null) {
-                current = new AttributeNode(lineOf(tr), current, tr.ID().getText());
-            } else if (tr.OPEN_B() != null) {
+
+            if (tr instanceof PythonParser.TrailerAttrContext) {
+                PythonParser.TrailerAttrContext ta = (PythonParser.TrailerAttrContext) tr;
+                current = new AttributeNode(lineOf(ta), current, ta.ID().getText());
+
+            } else if (tr instanceof PythonParser.TrailerCallContext) {
+                PythonParser.TrailerCallContext tc = (PythonParser.TrailerCallContext) tr;
+
                 List<AstNode> args = new ArrayList<>();
-                if (tr.arglist() != null) {
-                    for (PythonParser.ArgumentContext a : tr.arglist().argument()) {
+                if (tc.arglist() != null) {
+                    for (PythonParser.ArgumentContext a : tc.arglist().argument()) {
                         args.add(visit(a));
                     }
                 }
-                current = new CallNode(lineOf(tr), current, args);
-            } else if (tr.LBRACK() != null) {
-                AstNode index = (tr.expr() != null) ? visit(tr.expr()) : new ErrorExprNode(lineOf(tr), "missing index");
-                current = new SubscriptNode(lineOf(tr), current, index);
+                current = new CallNode(lineOf(tc), current, args);
+
+            } else if (tr instanceof PythonParser.TrailerIndexContext) {
+                PythonParser.TrailerIndexContext ti = (PythonParser.TrailerIndexContext) tr;
+
+                AstNode index = (ti.expr() != null)
+                        ? visit(ti.expr())
+                        : new ErrorExprNode(lineOf(ti), "missing index");
+
+                current = new SubscriptNode(lineOf(ti), current, index);
             }
         }
+
         return current;
     }
 
+
     @Override
-    public AstNode visitArgument(PythonParser.ArgumentContext ctx) {
-        if (ctx.ID() != null) {
-            String name = ctx.ID().getText();
-            AstNode value = visit(ctx.expr());
-            return new KeywordArgNode(lineOf(ctx), name, value);
-        }
+    public AstNode visitArgKeyword(PythonParser.ArgKeywordContext ctx) {
+        String name = ctx.ID().getText();
+        AstNode value = visit(ctx.expr());
+        return new KeywordArgNode(lineOf(ctx), name, value);
+    }
+
+    @Override
+    public AstNode visitArgPositional(PythonParser.ArgPositionalContext ctx) {
         return visit(ctx.expr());
     }
 
     @Override
-    public AstNode visitAtom(PythonParser.AtomContext ctx) {
+    public AstNode visitAtomId(PythonParser.AtomIdContext ctx) {
         int line = lineOf(ctx);
-        if (ctx.ID() != null) {
-            String name = ctx.ID().getText();
-            IdentifierNode node = new IdentifierNode(line, name);
-            node.setSymbol(symbolTable.resolve(name, line));
-            return node;
-        }
-        if (ctx.STRING() != null) return new StringNode(line, stripQuotes(ctx.STRING().getText()));
-        if (ctx.INT_VALUE() != null) return new NumberNode(line, ctx.INT_VALUE().getText());
-        if (ctx.FLOAT_VALUE() != null) return new NumberNode(line, ctx.FLOAT_VALUE().getText());
-        if (ctx.NONE() != null) return new NoneNode(line);
-        if (ctx.TRUE() != null) return new BoolNode(line, true);
-        if (ctx.FALSE() != null) return new BoolNode(line, false);
-
-        if (ctx.list_literal() != null) return visit(ctx.list_literal());
-        if (ctx.dict_or_set_literal() != null) return visit(ctx.dict_or_set_literal());
-        if (ctx.gen_expr() != null) return visit(ctx.gen_expr());
-        if (ctx.expr() != null) return visit(ctx.expr()); // parenthesized expr
-
-        return new ErrorExprNode(lineOf(ctx), "unknown atom: " + ctx.getText());
+        String name = ctx.ID().getText();
+        IdentifierNode node = new IdentifierNode(line, name);
+        node.setSymbol(symbolTable.resolve(name, line));
+        return node;
     }
+
+    @Override
+    public AstNode visitAtomString(PythonParser.AtomStringContext ctx) {
+        return new StringNode(lineOf(ctx), stripQuotes(ctx.STRING().getText()));
+    }
+
+    @Override
+    public AstNode visitAtomInt(PythonParser.AtomIntContext ctx) {
+        return new NumberNode(lineOf(ctx), ctx.INT_VALUE().getText());
+    }
+
+    @Override
+    public AstNode visitAtomFloat(PythonParser.AtomFloatContext ctx) {
+        return new NumberNode(lineOf(ctx), ctx.FLOAT_VALUE().getText());
+    }
+
+    @Override
+    public AstNode visitAtomNone(PythonParser.AtomNoneContext ctx) {
+        return new NoneNode(lineOf(ctx));
+    }
+
+    @Override
+    public AstNode visitAtomTrue(PythonParser.AtomTrueContext ctx) {
+        return new BoolNode(lineOf(ctx), true);
+    }
+
+    @Override
+    public AstNode visitAtomFalse(PythonParser.AtomFalseContext ctx) {
+        return new BoolNode(lineOf(ctx), false);
+    }
+
+    @Override
+    public AstNode visitAtomList(PythonParser.AtomListContext ctx) {
+        return visit(ctx.list_literal());
+    }
+
+    @Override
+    public AstNode visitAtomDictOrSet(PythonParser.AtomDictOrSetContext ctx) {
+        return visit(ctx.dict_or_set_literal());
+    }
+
+    @Override
+    public AstNode visitAtomParen(PythonParser.AtomParenContext ctx) {
+        if (ctx.gen_expr() != null) return visit(ctx.gen_expr());
+        if (ctx.expr() != null) return visit(ctx.expr());
+        return null; // empty parentheses "()"
+    }
+
 
     @Override
     public AstNode visitList_literal(PythonParser.List_literalContext ctx) {
