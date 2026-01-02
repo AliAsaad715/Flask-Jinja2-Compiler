@@ -7,17 +7,24 @@ import java.util.Collections;
 import java.util.List;
 
 public class WithNode extends JinjaNode {
-    private final ExprNode header;
+    private final String varName;
+    private final ExprNode valueExpr;
     private final List<TemplateItemNode> body = new ArrayList<>();
 
-    public WithNode(int line, ExprNode header) {
+    public WithNode(int line, String varName, ExprNode valueExpr) {
         super("JinjaWith", line);
-        this.header = header;
-        addChild(header);
+        this.varName = varName;
+        this.valueExpr = valueExpr;
+        if (valueExpr != null) {
+            addChild(valueExpr);
+        }
     }
 
-    public ExprNode getHeader() {
-        return header;
+    public String getVarName() {
+        return varName;
+    }
+    public ExprNode getValueExpr() {
+        return valueExpr;
     }
 
     public void addBodyItem(TemplateItemNode item) {
@@ -29,5 +36,9 @@ public class WithNode extends JinjaNode {
 
     public List<TemplateItemNode> getBody() {
         return Collections.unmodifiableList(body);
+    }
+    @Override
+    protected String details() {
+        return varName == null || varName.isEmpty() ? "" : "{var=" + varName + "}";
     }
 }

@@ -6,6 +6,7 @@ import Visitor.CssAstBuilder;
 import Visitor.TemplateAstBuilder;
 import Visitor.TemplateSymbolCollector;
 import antlr.*;
+import Symbol.*;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 import Visitor.FlaskJinja2Visitor;
@@ -86,22 +87,13 @@ public class Main {
 
         TemplateParser parser = new TemplateParser(tokens);
 
-        ErrorCollectorListener errors = new ErrorCollectorListener();
-        parser.removeErrorListeners();
-        parser.addErrorListener(errors);
-
         AstNode ast = new TemplateAstBuilder().visit(parser.template());
 
-        if (errors.hasErrors()) {
-            System.out.println("PARSER ERRORS:");
-            System.out.println(errors.report());
-        }
-
         System.out.println("=== TEMPLATE AST ===");
-        System.out.println(ast.printTree());
+        System.out.println(ast.pretty());
 
         if (ast instanceof TemplateFileNode) {
-            symbol.SymbolTable table = new TemplateSymbolCollector().collect((TemplateFileNode) ast);
+            Symbol.SymbolTable table = new TemplateSymbolCollector().collect((TemplateFileNode) ast);
             System.out.println("=== SYMBOL TABLE ===");
             System.out.println(table.print());
         }
@@ -110,7 +102,7 @@ public class Main {
         if (!inlineCssAsts.isEmpty()) {
             for (int i = 0; i < inlineCssAsts.size(); i++) {
                 System.out.println("=== INLINE CSS AST " + (i + 1) + " ===");
-                System.out.println(inlineCssAsts.get(i).printTree());
+                System.out.println(inlineCssAsts.get(i).pretty());
             }
         }
     }
@@ -121,19 +113,10 @@ public class Main {
 
         CssParser parser = new CssParser(tokens);
 
-        ErrorCollectorListener errors = new ErrorCollectorListener();
-        parser.removeErrorListeners();
-        parser.addErrorListener(errors);
-
         AstNode ast = new CssAstBuilder().visit(parser.stylesheet());
 
-        if (errors.hasErrors()) {
-            System.out.println("PARSER ERRORS:");
-            System.out.println(errors.report());
-        }
-
         System.out.println("=== CSS AST ===");
-        System.out.println(ast.printTree());
+        System.out.println(ast.pretty());
     }
 
     private static boolean looksLikeCss(String filePath, String input) {

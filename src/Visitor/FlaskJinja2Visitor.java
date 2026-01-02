@@ -5,7 +5,7 @@ import antlr.PythonParser;
 import antlr.PythonParserBaseVisitor;
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
-import symbol.SymbolTablePython;
+import Symbol.SymbolTablePython;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,17 +14,11 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
 
     private final BufferedTokenStream tokens;
     private final SymbolTablePython symbolTable;
-    private ProgramNode programRoot;
 
     public FlaskJinja2Visitor(BufferedTokenStream tokens) {
         this.tokens = tokens;
         this.symbolTable = new SymbolTablePython();
     }
-
-    public ProgramNode getProgramRoot() {
-        return programRoot;
-    }
-
     public SymbolTablePython getSymbolTable() {
         return symbolTable;
     }
@@ -36,7 +30,6 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
             AstNode node = visit(st);
             if (node != null) program.add(node);
         }
-        this.programRoot = program;
         return program;
     }
 
@@ -83,7 +76,6 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
 
     @Override
     public AstNode visitReturn_stmt(PythonParser.Return_stmtContext ctx) {
-        // return_stmt : RETURN expr (COMMA expr)* NEWLINE
         ReturnNode r = new ReturnNode(lineOf(ctx));
         for (PythonParser.ExprContext e : ctx.expr()) {
             r.addValue(visit(e));
@@ -123,7 +115,6 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
 
     @Override
     public AstNode visitAssign_stmt(PythonParser.Assign_stmtContext ctx) {
-        // assign_stmt : assign_target EQUAL expr NEWLINE
         int line = lineOf(ctx);
         String target = textOf(ctx.assign_target());
         String baseName = ctx.assign_target().ID().getText();
@@ -141,7 +132,6 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
 
     @Override
     public AstNode visitDecorated_funcdef(PythonParser.Decorated_funcdefContext ctx) {
-        // decorated_funcdef : decorator+ funcdef
         DecoratedFunctionNode node = new DecoratedFunctionNode(lineOf(ctx));
 
         for (PythonParser.DecoratorContext dec : ctx.decorator()) {
@@ -187,7 +177,6 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
 
         DecoratorNode dec = new DecoratorNode(lineOf(ctx), obj, method, path);
 
-        // Optional: store all arguments as children for better AST visibility
         if (ctx.arglist() != null) {
             ArgsNode args = new ArgsNode(lineOf(ctx.arglist()));
             for (PythonParser.ArgumentContext a : ctx.arglist().argument()) {
@@ -201,7 +190,6 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
 
     @Override
     public AstNode visitFuncdef(PythonParser.FuncdefContext ctx) {
-        // funcdef : DEFINETION ID OPEN_B params? CLOSE_B COLON suite
         String name = ctx.ID().getText();
         int line = lineOf(ctx);
         FunctionNode fn = new FunctionNode(line, name);
@@ -247,11 +235,10 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
 
     @Override
     public AstNode visitIf_stmt(PythonParser.If_stmtContext ctx) {
-        // if_stmt : IF expr COLON suite (ELIF expr COLON suite)* (ELSE COLON suite)?
         IfNode root = new IfNode(lineOf(ctx), visit(ctx.expr(0)), (BlockNode) visit(ctx.suite(0)));
 
         int suiteIndex = 1;
-        for (int i = 1; i < ctx.expr().size(); i++) { // elif conditions: expr(1..)
+        for (int i = 1; i < ctx.expr().size(); i++) {
             BlockNode b = (BlockNode) visit(ctx.suite(suiteIndex++));
             root.addElif(new IfNode(lineOf(ctx), visit(ctx.expr(i)), b));
         }
@@ -269,10 +256,6 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
         AstNode expr = visit(ctx.expr());
         return new ExprStmtNode(lineOf(ctx), expr);
     }
-
-    // -------------------------
-    // Expressions (new grammar)
-    // -------------------------
 
     @Override
     public AstNode visitExpr(PythonParser.ExprContext ctx) {
@@ -472,10 +455,6 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
         symbolTable.popScope();
         return new GeneratorNode(line, element, var, varEntry, iterable, cond);
     }
-
-    // -------------------------
-    // Helpers
-    // -------------------------
 
     private int lineOf(ParserRuleContext ctx) {
         return (ctx != null && ctx.getStart() != null) ? ctx.getStart().getLine() : -1;

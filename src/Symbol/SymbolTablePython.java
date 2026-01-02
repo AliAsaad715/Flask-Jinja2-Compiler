@@ -1,4 +1,4 @@
-package symbol;
+package Symbol;
 
 import java.util.*;
 
@@ -105,19 +105,10 @@ public class SymbolTablePython {
         return scope.symbols.get(name);
     }
 
-    public String currentScopeName() {
-        Scope scope = currentScope();
-        return scope != null ? scope.name : "";
-    }
-
-    public List<String> getDiagnostics() {
-        return Collections.unmodifiableList(diagnostics);
-    }
-
     public String format() {
         StringBuilder sb = new StringBuilder();
         List<Scope> ordered = new ArrayList<>(scopes);
-        Collections.reverse(ordered); // print global first
+        Collections.reverse(ordered);
         for (Scope scope : ordered) {
             sb.append(scope.name).append(" scope:\n");
             if (scope.symbols.isEmpty()) {

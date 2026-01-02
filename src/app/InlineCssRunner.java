@@ -54,17 +54,7 @@ public class InlineCssRunner {
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         CssParser parser = new CssParser(tokens);
 
-        ErrorCollectorListener errors = new ErrorCollectorListener();
-        parser.removeErrorListeners();
-        parser.addErrorListener(errors);
-
         AstNode ast = new CssAstBuilder().visit(parser.stylesheet());
-
-        if (errors.hasErrors()) {
-            System.out.println("INLINE CSS PARSER ERRORS:");
-            System.out.println(errors.report());
-        }
-
         return ast;
     }
 }

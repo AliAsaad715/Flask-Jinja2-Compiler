@@ -1,7 +1,6 @@
 package AST;
 
-import symbol.SymbolTable;
-import symbol.SymbolTablePython;
+import Symbol.SymbolTablePython;
 
 public class GeneratorNode extends ExprNode {
     public String var;

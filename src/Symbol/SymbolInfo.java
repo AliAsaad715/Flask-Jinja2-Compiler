@@ -1,4 +1,4 @@
-package symbol;
+package Symbol;
 
 public class SymbolInfo {
     private final String name;

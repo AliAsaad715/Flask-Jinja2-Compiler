@@ -1,4 +1,4 @@
-package symbol;
+package Symbol;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
