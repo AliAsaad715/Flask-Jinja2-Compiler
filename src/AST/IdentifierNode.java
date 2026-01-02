@@ -1,7 +1,7 @@
 package AST;
 
-import symbol.SymbolTable;
-import symbol.SymbolTablePython;
+import Symbol.SymbolTable;
+import Symbol.SymbolTablePython;
 
 public class IdentifierNode extends AstNode {
     public String name;

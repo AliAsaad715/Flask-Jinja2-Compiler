@@ -1,4 +1,4 @@
-package symbol;
+package Symbol;
 
 public enum SymbolKind {
     LOOP_VAR,

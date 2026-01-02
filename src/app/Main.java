@@ -6,6 +6,7 @@ import Visitor.CssAstBuilder;
 import Visitor.TemplateAstBuilder;
 import Visitor.TemplateSymbolCollector;
 import antlr.*;
+import Symbol.*;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 import Visitor.FlaskJinja2Visitor;
@@ -101,7 +102,7 @@ public class Main {
         System.out.println(ast.printTree());
 
         if (ast instanceof TemplateFileNode) {
-            symbol.SymbolTable table = new TemplateSymbolCollector().collect((TemplateFileNode) ast);
+            Symbol.SymbolTable table = new TemplateSymbolCollector().collect((TemplateFileNode) ast);
             System.out.println("=== SYMBOL TABLE ===");
             System.out.println(table.print());
         }

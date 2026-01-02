@@ -5,7 +5,7 @@ import antlr.PythonParser;
 import antlr.PythonParserBaseVisitor;
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
-import symbol.SymbolTablePython;
+import Symbol.SymbolTablePython;
 
 import java.util.ArrayList;
 import java.util.List;

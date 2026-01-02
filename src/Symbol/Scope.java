@@ -1,4 +1,4 @@
-package symbol;
+package Symbol;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -8,7 +8,7 @@ public class Scope {
     private final String name;
     private final int line;
     private final Scope parent;
-    private final Map<String, symbol.SymbolInfo> symbols = new LinkedHashMap<>();
+    private final Map<String, Symbol.SymbolInfo> symbols = new LinkedHashMap<>();
 
     public Scope(String name, int line, Scope parent) {
         this.name = name;
@@ -28,15 +28,15 @@ public class Scope {
         return parent;
     }
 
-    public void define(symbol.SymbolInfo info) {
+    public void define(Symbol.SymbolInfo info) {
         symbols.put(info.getName(), info);
     }
 
-    public symbol.SymbolInfo lookupLocal(String name) {
+    public Symbol.SymbolInfo lookupLocal(String name) {
         return symbols.get(name);
     }
 
-    public Map<String, symbol.SymbolInfo> getSymbols() {
+    public Map<String, Symbol.SymbolInfo> getSymbols() {
         return Collections.unmodifiableMap(symbols);
     }
 }
