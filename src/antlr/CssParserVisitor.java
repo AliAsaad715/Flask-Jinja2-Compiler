@@ -59,6 +59,13 @@ public interface CssParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitSelComma(CssParser.SelCommaContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code SelPseudo}
+	 * labeled alternative in {@link CssParser#selectorPart}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitSelPseudo(CssParser.SelPseudoContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code Declaration}
 	 * labeled alternative in {@link CssParser#decl}.
 	 * @param ctx the parse tree

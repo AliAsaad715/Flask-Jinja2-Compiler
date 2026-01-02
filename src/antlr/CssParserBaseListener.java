@@ -101,6 +101,18 @@ public class CssParserBaseListener implements CssParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterSelPseudo(CssParser.SelPseudoContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitSelPseudo(CssParser.SelPseudoContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterDeclaration(CssParser.DeclarationContext ctx) { }
 	/**
 	 * {@inheritDoc}

@@ -21,6 +21,8 @@ selectorPart
     | DOT IDENT                      #SelClass
     | HASH IDENT                     #SelId
     | COMMA                          #SelComma
+    | COLON IDENT                    #SelPseudo
+
     ;
 
 decl

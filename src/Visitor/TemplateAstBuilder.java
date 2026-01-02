@@ -191,6 +191,7 @@ public class TemplateAstBuilder extends TemplateParserBaseVisitor<AstNode> {
 
         return root;
     }
+
     @Override
     public AstNode visitHtmlVoidElement(antlr.TemplateParser.HtmlVoidElementContext ctx) {
         antlr.TemplateParser.VoidElementContext v = ctx.voidElement();
@@ -204,6 +205,7 @@ public class TemplateAstBuilder extends TemplateParserBaseVisitor<AstNode> {
 
         return el;
     }
+
     @Override
     public AstNode visitJinjaWithItem(TemplateParser.JinjaWithItemContext ctx) {
         return visit(ctx.jinjaWith());
@@ -211,7 +213,32 @@ public class TemplateAstBuilder extends TemplateParserBaseVisitor<AstNode> {
 
     @Override
     public AstNode visitJinjaWith(TemplateParser.JinjaWithContext ctx) {
-        WithNode w = new WithNode(lineOf(ctx.getStart()), buildExpr(ctx.expr(), ctx.getStart()));
+        // Support: {% with messages = get_flashed_messages() %} ... {% endwith %}
+        int line = lineOf(ctx.getStart());
+        String raw = ctx.expr() != null ? ctx.expr().getText() : "";
+
+        String varName = null;
+        ExprNode headerOrValue;
+
+        int eq = indexOfTopLevel(raw, '=');
+        // Avoid treating '==' as assignment
+        boolean isAssignment = eq > 0 && !(eq + 1 < raw.length() && raw.charAt(eq + 1) == '=');
+
+        if (isAssignment) {
+            String left = raw.substring(0, eq).trim();
+            String right = raw.substring(eq + 1).trim();
+            if (left.matches("[A-Za-z_][A-Za-z0-9_]*")) {
+                varName = left;
+                headerOrValue = buildExprFromText(line, right);
+            } else {
+                // Fallback: keep the whole expression as-is
+                headerOrValue = buildExprFromText(line, raw);
+            }
+        } else {
+            headerOrValue = buildExprFromText(line, raw);
+        }
+
+        WithNode w = new WithNode(line, varName, headerOrValue);
         for (TemplateParser.WithBodyItemContext b : ctx.withBodyItem()) {
             AstNode n = visit(b.item());
             if (n instanceof TemplateItemNode) {
@@ -220,7 +247,6 @@ public class TemplateAstBuilder extends TemplateParserBaseVisitor<AstNode> {
         }
         return w;
     }
-
 
     private ExprNode buildExpr(TemplateParser.ExprContext ctx, Token fallback) {
         int line = lineOf(ctx != null ? ctx.getStart() : fallback);
@@ -233,6 +259,12 @@ public class TemplateAstBuilder extends TemplateParserBaseVisitor<AstNode> {
         if (s.isEmpty()) return new LiteralExpr(line, "");
         if (isQuoted(s)) return new LiteralExpr(line, unquote(s));
         if (s.matches("[0-9]+")) return new LiteralExpr(line, s);
+
+        // If the expression contains operators/syntax we don't model in the Expr AST yet,
+        // keep it as a RawExpr so SymbolTable extraction can still work.
+        if (shouldUseRawExpr(s)) {
+            return new RawExpr(line, s);
+        }
 
         int paren = indexOfTopLevel(s, '(');
         if (paren > 0 && s.endsWith(")")) {
@@ -248,6 +280,23 @@ public class TemplateAstBuilder extends TemplateParserBaseVisitor<AstNode> {
         }
 
         return buildAccessChain(line, s);
+    }
+
+    private boolean shouldUseRawExpr(String s) {
+        // We currently support: ID, ID.ID, and simple calls with basic arguments.
+        // Anything containing these chars is considered "complex" for now.
+        return s.indexOf('+') >= 0
+                || s.indexOf('-') >= 0
+                || s.indexOf('*') >= 0
+                || s.indexOf('/') >= 0
+                || s.indexOf('>') >= 0
+                || s.indexOf('<') >= 0
+                || s.indexOf('=') >= 0
+                || s.indexOf('!') >= 0
+                || s.indexOf('|') >= 0
+                || s.indexOf('[') >= 0
+                || s.indexOf(']') >= 0
+                || s.indexOf(':') >= 0;
     }
 
     private ExprNode buildAccessChain(int line, String s) {
@@ -315,15 +364,17 @@ public class TemplateAstBuilder extends TemplateParserBaseVisitor<AstNode> {
         for (int i = 0; i < s.length(); i++) {
             char ch = s.charAt(i);
 
-            if (ch == '\'' && !inD) inS = !inS;
-            else if (ch == '"' && !inS) inD = !inD;
-            else if (!inS && !inD) {
-                if (ch == '(' || ch == '[' || ch == '{') depth++;
-                else if (ch == ')' || ch == ']' || ch == '}') depth--;
-                else if (ch == target && depth == 0) return i;
-            }
-        }
+            if (ch == '\'' && !inD) { inS = !inS; continue; }
+            if (ch == '"'  && !inS) { inD = !inD; continue; }
+            if (inS || inD) continue;
 
+            // ✅ check target first at top-level
+            if (depth == 0 && ch == target) return i;
+
+            // then update depth
+            if (ch == '(' || ch == '[' || ch == '{') depth++;
+            else if (ch == ')' || ch == ']' || ch == '}') depth--;
+        }
         return -1;
     }
 

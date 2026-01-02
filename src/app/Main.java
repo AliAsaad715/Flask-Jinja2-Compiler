@@ -22,11 +22,13 @@ public class Main {
     public static void main(String[] args) throws Exception {
         List<String> paths = new ArrayList<>();
         if (args.length == 0) {
-            paths.add("Tests/base_html.txt");
+//            paths.add("Tests/base_html.txt");
+//            paths.add("Tests/product_detail_html.txt");
             paths.add("Tests/products_html.txt");
-            paths.add("Tests/product_detail_html.txt");
-            paths.add("Tests/add_product_html.txt");
-            paths.add("Tests/style_css.txt");
+
+//            paths.add("Tests/add_product_html.txt");
+//            paths.add("Tests/style_css.txt");
+
         } else {
             for (String a : args) paths.add(a);
         }

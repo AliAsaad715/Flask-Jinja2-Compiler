@@ -48,7 +48,7 @@ public abstract class AstNode {
     public final String printTree(String indent) {
         StringBuilder sb = new StringBuilder();
         sb.append(indent)
-                .append(nodeName)
+                .append(getClass().getSimpleName())
                 .append(" [line=")
                 .append(line)
                 .append("]");

@@ -90,6 +90,18 @@ public interface CssParserListener extends ParseTreeListener {
 	 */
 	void exitSelComma(CssParser.SelCommaContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code SelPseudo}
+	 * labeled alternative in {@link CssParser#selectorPart}.
+	 * @param ctx the parse tree
+	 */
+	void enterSelPseudo(CssParser.SelPseudoContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code SelPseudo}
+	 * labeled alternative in {@link CssParser#selectorPart}.
+	 * @param ctx the parse tree
+	 */
+	void exitSelPseudo(CssParser.SelPseudoContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code Declaration}
 	 * labeled alternative in {@link CssParser#decl}.
 	 * @param ctx the parse tree
