@@ -2,12 +2,6 @@ package Symbol;
 
 import java.util.*;
 
-/**
- * Simple scoped symbol table used during AST construction.
- * Symbols are recorded when we see declarations (imports, assignments, functions)
- * and looked up for identifier references. Each scope keeps its own set of names,
- * with lookup walking outward through parents.
- */
 public class SymbolTablePython {
 
     public enum SymbolKind { VARIABLE, FUNCTION, PARAMETER, IMPORT }

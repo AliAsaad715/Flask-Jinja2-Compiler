@@ -70,7 +70,7 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
 
     @Override
     public AstNode visitStmtNewline(PythonParser.StmtNewlineContext ctx) {
-        return null; // NEWLINE-only
+        return null;
     }
 
 
@@ -121,8 +121,7 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
         AstNode value = visit(ctx.expr());
         SymbolTablePython.SymbolEntry entry = defineInCurrentScope(baseName, SymbolTablePython.SymbolKind.VARIABLE, line);
         if (entry != null) {
-            boolean isPlainNameAssignment = ctx.assign_target().trailer_no_call().isEmpty();
-            if (isPlainNameAssignment) {
+            if (ctx.assign_target().trailer_no_call().isEmpty()) {
                 entry.setAttribute("target", target);
             }
         }
@@ -144,7 +143,7 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
 
         RouteNode route = new RouteNode(lineOf(ctx));
         if (!node.decorators.isEmpty()) {
-            route.setDecorator(node.decorators.get(0));
+            route.setDecorator(node.decorators.getFirst());
         }
         route.setFunction(fn);
 
@@ -412,7 +411,7 @@ public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
     public AstNode visitAtomParen(PythonParser.AtomParenContext ctx) {
         if (ctx.gen_expr() != null) return visit(ctx.gen_expr());
         if (ctx.expr() != null) return visit(ctx.expr());
-        return null; // empty parentheses "()"
+        return null;
     }
 
 
