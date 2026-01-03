@@ -169,7 +169,7 @@ public class TemplateSymbolCollector {
 
                 boolean isAttr = prev == '.';
                 boolean isFilterName = prev == '|';
-                boolean isKwArgKey = next == '='; // e.g. filename=...
+                boolean isKwArgKey = next == '=';
 
                 if (!isAttr && !isFilterName && !isKwArgKey) {
                     out.add(id);

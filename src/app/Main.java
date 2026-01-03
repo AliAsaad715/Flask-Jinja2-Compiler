@@ -8,7 +8,7 @@ import Visitor.TemplateSymbolCollector;
 import antlr.*;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
-import Visitor.FlaskJinja2Visitor;
+import Visitor.PythonVisitor;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,7 +29,7 @@ public class Main {
         PythonParser parser = new PythonParser(tokens);
         ParseTree tree = parser.program();
 
-        FlaskJinja2Visitor v = new FlaskJinja2Visitor(tokens);
+        PythonVisitor v = new PythonVisitor(tokens);
         AstNode ast = v.visit(tree);
 
         System.out.println("\n=== AST TREE ===");

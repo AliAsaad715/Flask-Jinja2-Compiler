@@ -10,12 +10,12 @@ import Symbol.SymbolTablePython;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FlaskJinja2Visitor extends PythonParserBaseVisitor<AstNode> {
+public class PythonVisitor extends PythonParserBaseVisitor<AstNode> {
 
     private final BufferedTokenStream tokens;
     private final SymbolTablePython symbolTable;
 
-    public FlaskJinja2Visitor(BufferedTokenStream tokens) {
+    public PythonVisitor(BufferedTokenStream tokens) {
         this.tokens = tokens;
         this.symbolTable = new SymbolTablePython();
     }
