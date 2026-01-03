@@ -1,13 +1,6 @@
 package Symbol;
 
 import java.util.*;
-
-/**
- * Simple scoped symbol table used during AST construction.
- * Symbols are recorded when we see declarations (imports, assignments, functions)
- * and looked up for identifier references. Each scope keeps its own set of names,
- * with lookup walking outward through parents.
- */
 public class SymbolTablePython {
 
     public enum SymbolKind { VARIABLE, FUNCTION, PARAMETER, IMPORT }
@@ -81,7 +74,7 @@ public class SymbolTablePython {
         Scope scope = currentScope();
         SymbolEntry existing = scope.symbols.get(name);
         if (existing != null) {
-            diagnostics.add("line " + line + ": symbol '" + name + "' already defined in scope '" + scope.name + "'");
+//            diagnostics.add("line " + line + ": symbol '" + name + "' already defined in scope '" + scope.name + "'");
             return existing;
         }
 
@@ -95,7 +88,7 @@ public class SymbolTablePython {
             SymbolEntry entry = scope.symbols.get(name);
             if (entry != null) return entry;
         }
-        diagnostics.add("line " + line + ": symbol '" + name + "' not defined in any visible scope");
+//        diagnostics.add("line " + line + ": symbol '" + name + "' not defined in any visible scope");
         return null;
     }
 
@@ -117,12 +110,6 @@ public class SymbolTablePython {
             }
             for (SymbolEntry entry : scope.symbols.values()) {
                 sb.append("  - ").append(entry).append("\n");
-            }
-        }
-        if (!diagnostics.isEmpty()) {
-            sb.append("diagnostics:\n");
-            for (String diag : diagnostics) {
-                sb.append("  * ").append(diag).append("\n");
             }
         }
         return sb.toString();
