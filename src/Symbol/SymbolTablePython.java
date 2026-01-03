@@ -1,6 +1,7 @@
 package Symbol;
 
 import java.util.*;
+
 public class SymbolTablePython {
 
     public enum SymbolKind { VARIABLE, FUNCTION, PARAMETER, IMPORT }
@@ -52,6 +53,9 @@ public class SymbolTablePython {
     }
 
     private final Deque<Scope> scopes = new ArrayDeque<>();
+
+    private final List<Scope> allScopes = new ArrayList<>();
+
     private final List<String> diagnostics = new ArrayList<>();
 
     public SymbolTablePython() {
@@ -59,7 +63,9 @@ public class SymbolTablePython {
     }
 
     public void pushScope(String name) {
-        scopes.push(new Scope(name));
+        Scope newScope = new Scope(name);
+        scopes.push(newScope);
+        allScopes.add(newScope);
     }
 
     public void popScope() {
@@ -74,7 +80,7 @@ public class SymbolTablePython {
         Scope scope = currentScope();
         SymbolEntry existing = scope.symbols.get(name);
         if (existing != null) {
-//            diagnostics.add("line " + line + ": symbol '" + name + "' already defined in scope '" + scope.name + "'");
+            // diagnostics.add("line " + line + ": symbol '" + name + "' already defined...");
             return existing;
         }
 
@@ -88,7 +94,6 @@ public class SymbolTablePython {
             SymbolEntry entry = scope.symbols.get(name);
             if (entry != null) return entry;
         }
-//        diagnostics.add("line " + line + ": symbol '" + name + "' not defined in any visible scope");
         return null;
     }
 
@@ -100,17 +105,18 @@ public class SymbolTablePython {
 
     public String format() {
         StringBuilder sb = new StringBuilder();
-        List<Scope> ordered = new ArrayList<>(scopes);
-        Collections.reverse(ordered);
-        for (Scope scope : ordered) {
-            sb.append(scope.name).append(" scope:\n");
+
+        for (Scope scope : allScopes) {
+            sb.append("=== Scope: ").append(scope.name).append(" ===\n");
+
             if (scope.symbols.isEmpty()) {
                 sb.append("  (empty)\n");
-                continue;
+            } else {
+                for (SymbolEntry entry : scope.symbols.values()) {
+                    sb.append("  - ").append(entry).append("\n");
+                }
             }
-            for (SymbolEntry entry : scope.symbols.values()) {
-                sb.append("  - ").append(entry).append("\n");
-            }
+            sb.append("\n");
         }
         return sb.toString();
     }
@@ -119,4 +125,3 @@ public class SymbolTablePython {
         return scopes.peek();
     }
 }
-
