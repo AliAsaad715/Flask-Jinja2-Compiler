@@ -1,12 +1,11 @@
 package app;
 
-import AST.AstNode;
+import AST.python.AstNode;
 import AST.template.TemplateFileNode;
 import Visitor.CssAstBuilder;
 import Visitor.TemplateAstBuilder;
 import Visitor.TemplateSymbolCollector;
 import antlr.*;
-import Symbol.*;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 import Visitor.FlaskJinja2Visitor;

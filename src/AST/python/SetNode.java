@@ -1,0 +1,7 @@
+package AST.python;
+
+public class SetNode extends ExprNode {
+    public SetNode(int line) {
+        super("Set", line);
+    }
+}

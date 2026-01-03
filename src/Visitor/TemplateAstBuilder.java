@@ -1,6 +1,6 @@
 package Visitor;
 
-import AST.AstNode;
+import AST.python.AstNode;
 import AST.template.*;
 import AST.template.expr.*;
 import antlr.TemplateParser;

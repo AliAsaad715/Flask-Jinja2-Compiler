@@ -1,6 +1,6 @@
 package app;
 
-import AST.AstNode;
+import AST.python.AstNode;
 import AST.template.ElementNode;
 import AST.template.TextNode;
 import Visitor.CssAstBuilder;

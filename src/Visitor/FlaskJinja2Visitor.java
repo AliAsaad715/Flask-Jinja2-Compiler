@@ -1,6 +1,6 @@
 package Visitor;
 
-import AST.*;
+import AST.python.*;
 import antlr.PythonParser;
 import antlr.PythonParserBaseVisitor;
 import org.antlr.v4.runtime.BufferedTokenStream;

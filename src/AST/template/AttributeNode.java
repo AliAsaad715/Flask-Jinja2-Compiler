@@ -1,6 +1,6 @@
 package AST.template;
 
-import AST.AstNode;
+import AST.python.AstNode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

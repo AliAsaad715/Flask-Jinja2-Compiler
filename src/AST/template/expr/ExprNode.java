@@ -1,7 +1,7 @@
 
 package AST.template.expr;
 
-import AST.AstNode;
+import AST.python.AstNode;
 
 public abstract class ExprNode extends AstNode {
     protected ExprNode(String nodeName, int line) {

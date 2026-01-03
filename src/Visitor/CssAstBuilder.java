@@ -1,6 +1,6 @@
 package Visitor;
 
-import AST.AstNode;
+import AST.python.AstNode;
 import AST.css.CssDeclNode;
 import AST.css.CssFileNode;
 import AST.css.CssRuleNode;

@@ -1,6 +1,6 @@
 package AST.template.expr;
 
-import AST.AstNode;
+import AST.python.AstNode;
 
 public class CallArgNode extends AstNode {
     private final String name;
