@@ -9,6 +9,8 @@ import Analysis.SemanticDiagnostic;
 import Analysis.TemplateSemanticAnalyzer;
 import AST.AstNode;
 import AST.template.TemplateFileNode;
+import Generator.FlaskCodeGenerator;
+import Generator.GeneratedFile;
 import Visitor.CssAstBuilder;
 import Visitor.TemplateAstBuilder;
 import Visitor.TemplateSymbolCollector;
@@ -93,6 +95,7 @@ public class Main {
         }
 
         printSemanticDiagnostics(semanticDiagnostics);
+        runCodeGeneration(file, paths);
     }
 
     private static List<SemanticDiagnostic> runFile(
@@ -244,6 +247,21 @@ public class Main {
         }
         for (SemanticDiagnostic diagnostic : diagnostics) {
             System.out.println(diagnostic);
+        }
+    }
+
+    private static void runCodeGeneration(String pythonSourcePath, List<String> sourcePaths) {
+        System.out.println("\n=== CODE GENERATION ===");
+        try {
+            FlaskCodeGenerator generator = new FlaskCodeGenerator();
+            List<GeneratedFile> generated = generator.generate(
+                    pythonSourcePath,
+                    sourcePaths,
+                    Path.of("generated", "flask_app")
+            );
+            System.out.println(FlaskCodeGenerator.format(generated));
+        } catch (Exception e) {
+            System.out.println("Code generation failed: " + e.getMessage());
         }
     }
 }
