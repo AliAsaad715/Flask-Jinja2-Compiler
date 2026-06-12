@@ -37,8 +37,12 @@
                 <p class="lead">{{ product.details }}</p>
             </div>
 
-            <div class="mt-4">
+            <div class="mt-4 d-flex gap-2">
                 <a href="{{ url_for('products_list') }}" class="btn btn-outline-secondary btn-lg">العودة للقائمة</a>
+                <form action="{{ url_for('delete_product', product_id=product.id) }}"
+                      method="POST">
+                    <button type="submit" class="btn btn-danger btn-lg">حذف المنتج</button>
+                </form>
             </div>
         </div>
     </div>

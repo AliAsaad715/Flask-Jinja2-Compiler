@@ -42,6 +42,13 @@ def product_detail(product_id):
         return "المنتج غير موجود", 404
     return render_template('product_detail.html', product=product)
 
+@app.route('/delete-product/<int:product_id>', methods=['POST'])
+def delete_product(product_id):
+    product = next((p for p in products if p['id'] == product_id), None)
+    if product:
+        products.remove(product)
+    return redirect(url_for('products_list'))
+
 @app.route('/add-product', methods=['GET', 'POST'])
 def add_product():
     if request.method == 'POST':
