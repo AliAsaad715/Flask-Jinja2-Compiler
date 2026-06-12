@@ -9,6 +9,7 @@ import Symbol.SymbolKind;
 import Symbol.SymbolTable;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -16,8 +17,9 @@ import java.util.Set;
 public class TemplateSymbolCollector {
     private final SymbolTable table = new SymbolTable();
     private final Set<String> contextVars = new LinkedHashSet<>();
+    private final Set<String> initialContextVars = new LinkedHashSet<>();
 
-     private static final Set<String> KEYWORDS = new HashSet<>(Arrays.asList(
+    private static final Set<String> KEYWORDS = new HashSet<>(Arrays.asList(
             "if", "elif", "else", "for", "in", "and", "or", "not",
             "True", "False", "None"
     ));
@@ -27,10 +29,26 @@ public class TemplateSymbolCollector {
             "range", "len", "int", "float", "str", "list", "dict"
     ));
 
+    public TemplateSymbolCollector() {
+    }
+
+    public TemplateSymbolCollector(Collection<String> initialContextVars) {
+        if (initialContextVars != null) {
+            for (String name : initialContextVars) {
+                if (isValidIdentifier(name)) {
+                    this.initialContextVars.add(name);
+                }
+            }
+        }
+    }
+
     public SymbolTable collect(TemplateFileNode file) {
         table.enterScope("Global", file.getLine());
+        for (String n : initialContextVars) {
+            table.define(n, file.getLine(), SymbolKind.CONTEXT);
+        }
         walk(file);
-       for (String n : contextVars) {
+        for (String n : contextVars) {
             if (table.resolve(n) == null) {
                 table.define(n, file.getLine(), SymbolKind.CONTEXT);
             }

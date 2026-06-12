@@ -1,5 +1,7 @@
 package app;
 
+import Analysis.PythonTemplateBinder;
+import Analysis.TemplateContextBinding;
 import AST.AstNode;
 import AST.template.TemplateFileNode;
 import Visitor.CssAstBuilder;
@@ -15,7 +17,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -39,6 +44,12 @@ public class Main {
         System.out.println("\n=== SYMBOL TABLE ===");
         System.out.println(v.getSymbolTable().format());
 
+        PythonTemplateBinder binder = new PythonTemplateBinder();
+        Map<String, List<TemplateContextBinding>> templateBindings = binder.collect(ast);
+
+        System.out.println("\n=== TEMPLATE CONTEXT BINDINGS ===");
+        System.out.println(PythonTemplateBinder.format(templateBindings));
+
         List<String> paths = new ArrayList<>();
         if (args.length == 0) {
             paths.add("Tests/base_html.txt");
@@ -50,13 +61,12 @@ public class Main {
             paths.addAll(Arrays.asList(args));
         }
 
-        for (
-                String p : paths) {
-            runFile(p);
+        for (String p : paths) {
+            runFile(p, templateBindings);
         }
     }
 
-    private static void runFile(String filePath) {
+    private static void runFile(String filePath, Map<String, List<TemplateContextBinding>> templateBindings) {
         System.out.println("==================================================");
         System.out.println("FILE: " + filePath);
 
@@ -74,14 +84,14 @@ public class Main {
             if (css) {
                 runCss(input);
             } else {
-                runTemplate(input);
+                runTemplate(input, contextForTemplate(filePath, templateBindings));
             }
         } catch (Exception e) {
             System.out.println("Runtime error: " + e.getMessage());
         }
     }
 
-    private static void runTemplate(String input) {
+    private static void runTemplate(String input, Set<String> contextVars) {
         TemplateLexer lexer = new TemplateLexer(CharStreams.fromString(input));
         CommonTokenStream tokens = new CommonTokenStream(lexer);
 
@@ -93,7 +103,7 @@ public class Main {
         System.out.println(ast.pretty());
 
         if (ast instanceof TemplateFileNode) {
-            Symbol.SymbolTable table = new TemplateSymbolCollector().collect((TemplateFileNode) ast);
+            Symbol.SymbolTable table = new TemplateSymbolCollector(contextVars).collect((TemplateFileNode) ast);
             System.out.println("=== SYMBOL TABLE ===");
             System.out.println(table.print());
         }
@@ -124,5 +134,28 @@ public class Main {
         if (p.contains("css")) return true;
         if (input.contains("{%") || input.contains("{{") || input.contains("<")) return false;
         return input.contains("{") && input.contains(":");
+    }
+
+    private static Set<String> contextForTemplate(
+            String filePath,
+            Map<String, List<TemplateContextBinding>> templateBindings
+    ) {
+        if (templateBindings == null || templateBindings.isEmpty()) {
+            return new LinkedHashSet<>();
+        }
+        String templateName = templateNameForPath(filePath);
+        List<TemplateContextBinding> bindings = templateBindings.get(templateName);
+        return PythonTemplateBinder.contextNames(bindings);
+    }
+
+    private static String templateNameForPath(String filePath) {
+        String name = Path.of(filePath).getFileName().toString();
+        if (name.endsWith("_html.txt")) {
+            return name.substring(0, name.length() - "_html.txt".length()) + ".html";
+        }
+        if (name.endsWith(".html")) {
+            return name;
+        }
+        return name;
     }
 }
