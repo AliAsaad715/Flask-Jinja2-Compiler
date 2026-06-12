@@ -4,6 +4,9 @@ import Analysis.PythonTemplateBinder;
 import Analysis.TemplateContextBinding;
 import Analysis.PythonDataSource;
 import Analysis.PythonDataSourceExtractor;
+import Analysis.FlaskSemanticAnalyzer;
+import Analysis.SemanticDiagnostic;
+import Analysis.TemplateSemanticAnalyzer;
 import AST.AstNode;
 import AST.template.TemplateFileNode;
 import Visitor.CssAstBuilder;
@@ -72,12 +75,34 @@ public class Main {
             paths.addAll(Arrays.asList(args));
         }
 
+        Set<String> templateNames = templateNamesForPaths(paths);
+        FlaskSemanticAnalyzer flaskSemanticAnalyzer = new FlaskSemanticAnalyzer();
+        Set<String> routeFunctionNames = flaskSemanticAnalyzer.routeFunctionNames(ast);
+        List<SemanticDiagnostic> semanticDiagnostics = new ArrayList<>(
+                flaskSemanticAnalyzer.analyze(ast, templateNames, file)
+        );
+
         for (String p : paths) {
-            runFile(p, templateBindings);
+            semanticDiagnostics.addAll(runFile(
+                    p,
+                    templateBindings,
+                    dataSources,
+                    templateNames,
+                    routeFunctionNames
+            ));
         }
+
+        printSemanticDiagnostics(semanticDiagnostics);
     }
 
-    private static void runFile(String filePath, Map<String, List<TemplateContextBinding>> templateBindings) {
+    private static List<SemanticDiagnostic> runFile(
+            String filePath,
+            Map<String, List<TemplateContextBinding>> templateBindings,
+            Map<String, PythonDataSource> dataSources,
+            Set<String> templateNames,
+            Set<String> routeFunctionNames
+    ) {
+        List<SemanticDiagnostic> diagnostics = new ArrayList<>();
         System.out.println("==================================================");
         System.out.println("FILE: " + filePath);
 
@@ -86,7 +111,7 @@ public class Main {
             input = Files.readString(Path.of(filePath));
         } catch (Exception e) {
             System.out.println("Cannot read file: " + e.getMessage());
-            return;
+            return diagnostics;
         }
 
         boolean css = looksLikeCss(filePath, input);
@@ -95,14 +120,31 @@ public class Main {
             if (css) {
                 runCss(input);
             } else {
-                runTemplate(input, contextForTemplate(filePath, templateBindings));
+                diagnostics.addAll(runTemplate(
+                        input,
+                        templateNameForPath(filePath),
+                        contextForTemplate(filePath, templateBindings),
+                        templateBindings,
+                        dataSources,
+                        templateNames,
+                        routeFunctionNames
+                ));
             }
         } catch (Exception e) {
             System.out.println("Runtime error: " + e.getMessage());
         }
+        return diagnostics;
     }
 
-    private static void runTemplate(String input, Set<String> contextVars) {
+    private static List<SemanticDiagnostic> runTemplate(
+            String input,
+            String templateName,
+            Set<String> contextVars,
+            Map<String, List<TemplateContextBinding>> templateBindings,
+            Map<String, PythonDataSource> dataSources,
+            Set<String> templateNames,
+            Set<String> routeFunctionNames
+    ) {
         TemplateLexer lexer = new TemplateLexer(CharStreams.fromString(input));
         CommonTokenStream tokens = new CommonTokenStream(lexer);
 
@@ -113,10 +155,22 @@ public class Main {
         System.out.println("=== TEMPLATE AST ===");
         System.out.println(ast.pretty());
 
+        List<SemanticDiagnostic> diagnostics = new ArrayList<>();
         if (ast instanceof TemplateFileNode) {
-            Symbol.SymbolTable table = new TemplateSymbolCollector(contextVars).collect((TemplateFileNode) ast);
+            TemplateFileNode templateAst = (TemplateFileNode) ast;
+            Symbol.SymbolTable table = new TemplateSymbolCollector(contextVars).collect(templateAst);
             System.out.println("=== SYMBOL TABLE ===");
             System.out.println(table.print());
+
+            diagnostics.addAll(new TemplateSemanticAnalyzer().analyze(
+                    templateName,
+                    templateAst,
+                    contextVars,
+                    templateBindings,
+                    dataSources,
+                    templateNames,
+                    routeFunctionNames
+            ));
         }
 
         List<AstNode> inlineCssAsts = InlineCssRunner.parseInlineCss(ast);
@@ -126,6 +180,7 @@ public class Main {
                 System.out.println(inlineCssAsts.get(i).pretty());
             }
         }
+        return diagnostics;
     }
 
     private static void runCss(String input) {
@@ -168,5 +223,27 @@ public class Main {
             return name;
         }
         return name;
+    }
+
+    private static Set<String> templateNamesForPaths(List<String> paths) {
+        Set<String> names = new LinkedHashSet<>();
+        for (String path : paths) {
+            String fileName = Path.of(path).getFileName().toString();
+            if (fileName.endsWith("_html.txt") || fileName.endsWith(".html")) {
+                names.add(templateNameForPath(path));
+            }
+        }
+        return names;
+    }
+
+    private static void printSemanticDiagnostics(List<SemanticDiagnostic> diagnostics) {
+        System.out.println("\n=== SEMANTIC DIAGNOSTICS ===");
+        if (diagnostics == null || diagnostics.isEmpty()) {
+            System.out.println("No semantic errors found.");
+            return;
+        }
+        for (SemanticDiagnostic diagnostic : diagnostics) {
+            System.out.println(diagnostic);
+        }
     }
 }
