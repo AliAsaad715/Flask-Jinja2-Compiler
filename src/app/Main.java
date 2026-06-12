@@ -2,6 +2,8 @@ package app;
 
 import Analysis.PythonTemplateBinder;
 import Analysis.TemplateContextBinding;
+import Analysis.PythonDataSource;
+import Analysis.PythonDataSourceExtractor;
 import AST.AstNode;
 import AST.template.TemplateFileNode;
 import Visitor.CssAstBuilder;
@@ -44,11 +46,20 @@ public class Main {
         System.out.println("\n=== SYMBOL TABLE ===");
         System.out.println(v.getSymbolTable().format());
 
+        PythonDataSourceExtractor dataSourceExtractor = new PythonDataSourceExtractor();
+        Map<String, PythonDataSource> dataSources = dataSourceExtractor.collect(ast);
+
+        System.out.println("\n=== PYTHON DATA SOURCES ===");
+        System.out.println(PythonDataSourceExtractor.format(dataSources));
+
         PythonTemplateBinder binder = new PythonTemplateBinder();
         Map<String, List<TemplateContextBinding>> templateBindings = binder.collect(ast);
 
         System.out.println("\n=== TEMPLATE CONTEXT BINDINGS ===");
         System.out.println(PythonTemplateBinder.format(templateBindings));
+
+        System.out.println("\n=== TEMPLATE DATA FLOW ===");
+        System.out.println(PythonDataSourceExtractor.formatTemplateDataFlow(templateBindings, dataSources));
 
         List<String> paths = new ArrayList<>();
         if (args.length == 0) {
