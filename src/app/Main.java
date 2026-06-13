@@ -23,7 +23,6 @@ import Visitor.FlaskJinja2Visitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -74,7 +73,9 @@ public class Main {
             paths.add("Tests/add_product_html.txt");
             paths.add("Tests/style_css.txt");
         } else {
-            paths.addAll(Arrays.asList(args));
+            for (int i = 1; i < args.length; i++) {
+                paths.add(args[i]);
+            }
         }
 
         Set<String> templateNames = templateNamesForPaths(paths);
@@ -95,7 +96,12 @@ public class Main {
         }
 
         printSemanticDiagnostics(semanticDiagnostics);
-        runCodeGeneration(file, paths);
+        if (semanticDiagnostics.isEmpty()) {
+            runCodeGeneration(file, paths);
+        } else {
+            System.out.println("\n=== CODE GENERATION ===");
+            System.out.println("Skipped because semantic errors were found.");
+        }
     }
 
     private static List<SemanticDiagnostic> runFile(

@@ -36,7 +36,7 @@ public class TemplateContextBinding {
 
     public void addContextValue(String name, String sourceExpr) {
         if (name == null || name.isBlank()) return;
-        contextValues.put(name, sourceExpr == null ? "" : sourceExpr);
+        contextValues.putIfAbsent(name, sourceExpr == null ? "" : sourceExpr);
     }
 
     public Map<String, String> getContextValues() {

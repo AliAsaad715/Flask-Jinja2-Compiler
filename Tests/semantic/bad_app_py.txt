@@ -1,0 +1,26 @@
+from flask import Flask, render_template, redirect, url_for
+
+app = Flask(__name__)
+
+products = [
+    {
+        'id': 1,
+        'name': 'Laptop'
+    }
+]
+
+@app.route('/products')
+def products_list():
+    return render_template('bad_products.html', products=products, products=missing_products)
+
+@app.route('/products')
+def duplicate_products():
+    return render_template('missing.html', products=products)
+
+@app.route('/product/<int:product_id>')
+def product_detail(item_id):
+    return render_template('bad_detail.html', product=product)
+
+@app.route('/go')
+def go():
+    return redirect(url_for('missing_endpoint'))
