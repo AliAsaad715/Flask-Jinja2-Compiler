@@ -5,12 +5,13 @@ Branch:
 S2
 
 Group number:
-TODO
+____________________________
 
 Group members:
-TODO - name 1
-TODO - name 2
-TODO - name 3
+1. ____________________________
+2. ____________________________
+3. ____________________________
+4. ____________________________
+5. ____________________________
 
-Notes:
-Replace the TODO lines with the official group number and member names before final submission.
+Before final submission, fill the official group number and member names.

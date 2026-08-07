@@ -3,71 +3,37 @@
 {% block title %}{{ product.name }} - متجر المنتجات{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ url_for('products_list') }}">المنتجات</a></li>
-                <li class="breadcrumb-item active">{{ product.name }}</li>
-            </ol>
-        </nav>
-    </div>
-</div>
+<nav class="breadcrumb-nav">
+    <a href="{{ url_for('products_list') }}">المنتجات</a>
+    <span> / </span>
+    <span>{{ product.name }}</span>
+</nav>
 
-<div class="row">
-    <div class="col-md-6">
-        {% if product.image %}
-        <img src="{{ url_for('static', filename='uploads/' + product.image) }}"
-             class="img-fluid rounded"
-             alt="{{ product.name }}">
-        {% else %}
-        <img src="https://via.placeholder.com/500x400?text=No+Image"
-             class="img-fluid rounded"
-             alt="صورة افتراضية">
-        {% endif %}
-    </div>
+<article class="detail-card">
+    <div class="row">
+        <div class="col-md-6">
+            {% if product.image %}
+            <img src="{{ url_for('static', filename='uploads/' + product.image) }}"
+                 class="detail-image" alt="{{ product.name }}">
+            {% else %}
+            <img src="{{ url_for('static', filename='product-placeholder.svg') }}"
+                 class="detail-image" alt="صورة افتراضية">
+            {% endif %}
+        </div>
 
-    <div class="col-md-6">
-        <div class="product-details">
-            <h1 class="display-5">{{ product.name }}</h1>
-            <p class="text-success fs-3 fw-bold">{{ product.price }} ر.س</p>
+        <div class="col-md-6 detail-content">
+            <span class="product-number">المنتج رقم {{ product.id }}</span>
+            <h1>{{ product.name }}</h1>
+            <p class="price detail-price">{{ product.price }} ر.س</p>
+            <h2>تفاصيل المنتج</h2>
+            <p class="lead">{{ product.details }}</p>
 
-            <div class="details-section mt-4">
-                <h4>تفاصيل المنتج:</h4>
-                <p class="lead">{{ product.details }}</p>
-            </div>
-
-            <div class="mt-4 d-flex gap-2">
-                <a href="{{ url_for('products_list') }}" class="btn btn-outline-secondary btn-lg">العودة للقائمة</a>
-                <form action="{{ url_for('delete_product', product_id=product.id) }}"
-                      method="POST">
-                    <button type="submit" class="btn btn-danger btn-lg">حذف المنتج</button>
-                </form>
+            <div class="action-row">
+                <a href="{{ url_for('products_list') }}" class="btn btn-outline-secondary">العودة للقائمة</a>
+                <a href="{{ url_for('delete_product', product_id=product.id) }}"
+                   class="btn btn-danger">حذف المنتج</a>
             </div>
         </div>
     </div>
-</div>
-
-<div class="row mt-5">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h4>معلومات إضافية</h4>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4">
-                        <strong>رقم المنتج:</strong> {{ product.id }}
-                    </div>
-                    <div class="col-md-4">
-                        <strong>التوفر:</strong> <span class="text-success">متوفر</span>
-                    </div>
-                    <div class="col-md-4">
-                        <strong>التصنيف:</strong> إلكترونيات
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+</article>
 {% endblock %}

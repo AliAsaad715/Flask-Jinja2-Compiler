@@ -1,62 +1,67 @@
 # تقرير مشروع المترجمات
 
-## معلومات عامة
+## 1. معلومات المشروع
 
-اسم المشروع: Flask-Jinja2-Compiler  
-الفرع المستخدم للتطوير: S2  
-رابط المستودع: https://github.com/AliAsaad715/Flask-Jinja2-Compiler
+- اسم المشروع: Flask-Jinja2-Compiler
+- الفرع: S2
+- المستودع: https://github.com/AliAsaad715/Flask-Jinja2-Compiler
+- الهدف: بناء مترجم مصغر يحلل تطبيق Flask يستخدم Python وJinja2 وHTML وCSS، ثم ينتج موقع HTML ثابتاً لا يحتوي على شيفرة Jinja.
 
-يهدف المشروع إلى بناء مترجم مصغر لتطبيقات Flask التي تستخدم Jinja2 مع HTML وCSS. يغطي المشروع مراحل التحليل اللفظي والنحوي، بناء AST، بناء جداول الرموز، الربط بين Python وJinja، التحليل الدلالي، وتوليد تطبيق Flask قابل للتشغيل.
+الموقع النهائي لا يحتاج إلى Flask عند فتحه. يستخدم Flask وJinja2 كلغتي إدخال للمترجم، بينما يحول المولد القوالب والبيانات إلى صفحات HTML جاهزة للمتصفح.
 
-## بنية المشروع
+## 2. بنية المشروع
 
-- `src/antlr`: قواعد ANTLR وملفات lexer/parser المولدة للغات Python وJinja/HTML وCSS.
-- `src/AST`: عقد AST الخاصة بـ Python.
-- `src/AST/template`: عقد AST الخاصة بـ Jinja وHTML.
-- `src/AST/template/expr`: عقد تعابير Jinja.
-- `src/AST/css`: عقد AST الخاصة بـ CSS.
-- `src/Visitor`: زوار بناء AST وجمع رموز القوالب.
-- `src/Symbol`: جداول الرموز وأنواع الرموز.
-- `src/Analysis`: الربط والتحليل الدلالي واستخراج مصادر البيانات.
-- `src/Generator`: توليد تطبيق Flask من ملفات الاختبار.
-- `src/app/Main.java`: نقطة تشغيل المشروع.
-- `Tests`: ملفات الإدخال الأساسية.
-- `Tests/semantic`: ملفات اختبار أخطاء دلالية مقصودة.
-- `generated/flask_app`: تطبيق Flask مولد من ملفات المشروع.
+- `src/antlr`: قواعد ANTLR وملفات Lexer وParser.
+- `src/AST`: عقد شجرة Python.
+- `src/AST/template`: عقد Jinja2 وHTML.
+- `src/AST/template/expr`: عقد تعابير Jinja2.
+- `src/AST/css`: عقد CSS.
+- `src/Visitor`: زوار بناء الأشجار وجمع الرموز.
+- `src/Symbol`: جداول الرموز والنطاقات.
+- `src/Analysis`: الربط، استخراج البيانات، والأخطاء النحوية والدلالية.
+- `src/Generator`: توليد الموقع الثابت والتحقق من الخرج.
+- `src/app/Main.java`: خط تشغيل مراحل المترجم.
+- `Tests`: ملفات Python والقوالب وCSS المستخدمة كمدخل صحيح.
+- `Tests/semantic`: مدخلات تحتوي أخطاء دلالية مقصودة.
+- `Tests/syntax`: مدخل يحتوي خطأ نحوياً مقصوداً.
+- `generated/static_site`: الموقع الثابت الناتج.
 
-## مرحلة Lexer وParser
+## 3. Lexer وParser
 
-تم تعريف قواعد مستقلة لكل جزء من المشروع:
+توجد قواعد مستقلة لكل لغة:
 
-- Python:
-  - `src/antlr/PythonLexer.g4`
-  - `src/antlr/PythonParser.g4`
-- Jinja2/HTML:
-  - `src/antlr/TemplateLexer.g4`
-  - `src/antlr/TemplateParser.g4`
-- CSS:
-  - `src/antlr/CssLexer.g4`
-  - `src/antlr/CssParser.g4`
+### Python
 
-تدعم قواعد Python بنية مناسبة لتطبيق Flask: الاستيراد، الإسناد، القوائم، القواميس، الدوال، decorators، route definitions، if statements، return statements، النداءات، الخصائص، indexing، وبعض التعابير المنطقية والحسابية.  
-تدعم قواعد Jinja/HTML عناصر HTML، attributes، `extends`, `block`, `for`, `if`, `with`, وطباعات `{{ ... }}`.  
-تدعم قواعد CSS selectors وdeclarations والقيم الأساسية.
+- `src/antlr/PythonLexer.g4`
+- `src/antlr/PythonParser.g4`
 
-## بناء AST
+تدعم القواعد الاستيراد، الإسناد، القوائم، القواميس، الدوال، decorators، routes، الشروط، return، الاستدعاءات، الخصائص، والفهرسة.
 
-يبني المشروع أكثر من شجرة AST بحسب اللغة:
+### Jinja2 وHTML
 
-- Python AST يتم بناؤه عبر `FlaskJinja2Visitor`.
-- Jinja/HTML AST يتم بناؤه عبر `TemplateAstBuilder`.
-- CSS AST يتم بناؤه عبر `CssAstBuilder`.
+- `src/antlr/TemplateLexer.g4`
+- `src/antlr/TemplateParser.g4`
 
-كل العقد ترث من `AstNode` أو من عقد وسيطة مثل `TemplateNode` و`CssNode`. تحتوي العقد على اسم العقدة، رقم السطر، قائمة الأبناء، وتابع طباعة مقروء. هذا يحقق مفاهيم OOP الأساسية:
+تدعم القواعد عناصر HTML وattributes، بالإضافة إلى `extends` و`block` و`for` و`if` و`with` وتعابير الطباعة.
 
-- Inheritance: جميع العقد ترث من عقد أساس مشتركة.
-- Polymorphism: كل عقدة تستطيع تخصيص `describe()` أو `details()`.
-- Encapsulation: بعض عقد template/css تخفي بياناتها خلف getters.
+### CSS
 
-## مخطط AST مبسط
+- `src/antlr/CssLexer.g4`
+- `src/antlr/CssParser.g4`
+
+تدعم القواعد selectors وdeclarations والقيم الرقمية والنصية والألوان والدوال البسيطة.
+
+تجمع `SyntaxErrorCollector` أخطاء Lexer وParser. إذا ظهر أي خطأ نحوي يتوقف التوليد، فلا ينتج المترجم موقعاً من مدخل غير صحيح.
+
+## 4. أشجار AST
+
+يبني المشروع ثلاث أشجار:
+
+1. Python AST عبر `FlaskJinja2Visitor`.
+2. Jinja2/HTML AST عبر `TemplateAstBuilder`.
+3. CSS AST عبر `CssAstBuilder`.
+
+جميع العقد ترث من `AstNode`. تخزن العقدة اسمها ورقم السطر وأبناءها، وتخصص `describe()` أو `details()` حسب نوعها. يحقق ذلك الوراثة وتعدد الأشكال، بينما تطبع `pretty()` العقدة وأبناءها بصورة شجرية.
 
 ```mermaid
 classDiagram
@@ -65,11 +70,10 @@ classDiagram
     AstNode <|-- TemplateNode
     AstNode <|-- CssNode
 
-    ExprNode <|-- CallNode
-    ExprNode <|-- BinaryOpNode
     ExprNode <|-- ListNode
     ExprNode <|-- DictNode
-    ExprNode <|-- IdentifierNode
+    ExprNode <|-- CallNode
+    ExprNode <|-- BinaryOpNode
 
     TemplateNode <|-- TemplateFileNode
     TemplateNode <|-- TemplateItemNode
@@ -77,172 +81,187 @@ classDiagram
     TemplateItemNode <|-- JinjaNode
     HtmlNode <|-- ElementNode
     HtmlNode <|-- TextNode
+    JinjaNode <|-- BlockNode
     JinjaNode <|-- ForNode
     JinjaNode <|-- IfNode
-    JinjaNode <|-- BlockNode
     JinjaNode <|-- PrintNode
-    JinjaNode <|-- ExtendsNode
 
     CssNode <|-- CssFileNode
     CssNode <|-- CssRuleNode
     CssNode <|-- CssDeclNode
 ```
 
-## جداول الرموز
+## 5. جداول الرموز
 
-يوجد جدول رموز خاص بـ Python في `SymbolTablePython`، ويسجل:
+يبني `SymbolTablePython` جدول Python ويسجل:
 
 - imports
 - variables
 - functions
 - parameters
+- scopes
 
-كما يوجد جدول رموز خاص بالقوالب عبر `TemplateSymbolCollector`، ويسجل:
+ويبني `TemplateSymbolCollector` جدول القوالب ويسجل:
 
-- context variables القادمة من Python.
-- loop variables.
-- with variables.
-- scopes الخاصة بـ blocks وif وfor.
+- متغيرات context القادمة من Python.
+- متغيرات حلقات `for`.
+- متغيرات `with`.
+- نطاقات blocks والشروط والحلقات.
 
-## الربط بين Python وJinja
+تُطبع الجداول ضمن الخرج النصي عند كل تشغيل.
 
-تمت إضافة مرحلة ربط عبر `PythonTemplateBinder`. تبحث هذه المرحلة عن نداءات:
+## 6. تمرير البيانات من Python إلى Jinja2
 
-```python
-render_template('template.html', key=value)
-```
+ينفذ المشروع الربط على مرحلتين:
 
-وتبني خريطة تربط كل template بالـ route والدالة والمتغيرات المرسلة إليه. مثال:
+1. يبحث `PythonTemplateBinder` عن استدعاءات `render_template` ويربط اسم القالب بالـroute والمتغيرات الممررة إليه.
+2. يستخرج `PythonDataSourceExtractor` بنية مصفوفة `products` وأسماء حقولها وأنواعها.
 
-```text
-products.html -> products_list passes {products=products}
-product_detail.html -> product_detail passes {product=product}
-```
-
-هذا الربط يجعل شجرة Jinja قادرة على معرفة المتغيرات القادمة من Python بدل تحليلها بمعزل عن التطبيق.
-
-## استخراج مصادر البيانات
-
-تستخرج `PythonDataSourceExtractor` مصادر البيانات المعرفة في Python، خصوصا القوائم التي تحتوي قواميس. في المثال الحالي:
-
-```python
-products = [
-    {'id': 1, 'name': '...', 'price': 2500.00, 'image': '...', 'details': '...'}
-]
-```
-
-يتم استخراج المصدر `products` كـ `list<dict>` مع الحقول:
-
-- `id`
-- `name`
-- `price`
-- `image`
-- `details`
-
-ثم يتم ربطه مع `products.html` عبر context variable باسم `products`.
-
-## التحليل الدلالي
-
-تم تنفيذ التحليل الدلالي في:
-
-- `FlaskSemanticAnalyzer`
-- `TemplateSemanticAnalyzer`
-- `SemanticDiagnostic`
-
-يعالج المشروع أكثر من 5 أخطاء دلالية، منها:
-
-1. `DUPLICATE_ROUTE`: وجود route مكرر بنفس المسار.
-2. `ROUTE_PARAM_MISSING`: وجود parameter في route غير موجود في function parameters.
-3. `FUNCTION_PARAM_NOT_IN_ROUTE`: وجود function parameter غير ممرر من route.
-4. `TEMPLATE_NOT_FOUND`: استدعاء `render_template` لقالب غير موجود.
-5. `DUPLICATE_TEMPLATE_CONTEXT`: تمرير نفس context key أكثر من مرة.
-6. `UNDEFINED_PYTHON_NAME`: استخدام اسم Python غير معرف.
-7. `EXTENDS_TEMPLATE_NOT_FOUND`: قالب Jinja يرث من قالب غير موجود.
-8. `UNDEFINED_TEMPLATE_NAME`: استخدام متغير Jinja غير معرف.
-9. `URL_FOR_UNKNOWN_ENDPOINT`: استخدام endpoint غير موجود في `url_for`.
-10. `DUPLICATE_TEMPLATE_BLOCK`: تكرار block بنفس الاسم داخل القالب.
-11. `UNKNOWN_DATA_FIELD`: استخدام حقل غير موجود في مصدر بيانات Python.
-
-توجد ملفات اختبار مقصودة في `Tests/semantic` وتنتج 12 خطأ دلاليا عند التشغيل.
-
-## توليد الكود
-
-تمت إضافة مولد في `FlaskCodeGenerator` يقوم بإنشاء تطبيق Flask قابل للتشغيل داخل:
+مثال تدفق البيانات:
 
 ```text
-generated/flask_app
+products.html <- products=products
+product_detail.html <- product=product
+delete_product.html <- product=product
 ```
 
-ينتج المولد:
+عند التوليد يستخرج `PythonValueExtractor` القيم الفعلية من Python AST. لا يقرأ المولد نص Python مباشرة ولا ينسخ القوالب؛ بل يتعامل مع العقد والقيم الناتجة من مرحلة التحليل.
 
-- `app.py`
-- `templates/*.html`
-- `static/style.css`
-- `static/uploads`
-- `README_GENERATED.txt`
+## 7. التحليل الدلالي
 
-إذا اكتشف التحليل الدلالي أخطاء، يتخطى المشروع مرحلة توليد الكود حتى لا يتم توليد تطبيق غير صحيح.
+ينفذ التحليل في `FlaskSemanticAnalyzer` و`TemplateSemanticAnalyzer`. من الأخطاء المعالجة:
 
-## الواجهات والتنقل
+1. `DUPLICATE_ROUTE`
+2. `ROUTE_PARAM_MISSING`
+3. `FUNCTION_PARAM_NOT_IN_ROUTE`
+4. `TEMPLATE_NOT_FOUND`
+5. `DUPLICATE_TEMPLATE_CONTEXT`
+6. `UNDEFINED_PYTHON_NAME`
+7. `EXTENDS_TEMPLATE_NOT_FOUND`
+8. `UNDEFINED_TEMPLATE_NAME`
+9. `URL_FOR_UNKNOWN_ENDPOINT`
+10. `DUPLICATE_TEMPLATE_BLOCK`
+11. `UNKNOWN_DATA_FIELD`
 
-يدعم التطبيق الواجهات المطلوبة:
+ينتج الاختبار الخاطئ الحالي 12 تشخيصاً دلالياً، ثم يتوقف التوليد.
 
-- عرض المنتجات: `products.html`
-- إضافة منتج: `add_product.html`
-- عرض تفاصيل منتج: `product_detail.html`
-- حذف منتج: route `delete_product`
+## 8. توليد الموقع الثابت
 
-توجد روابط وأزرار للتنقل بين قائمة المنتجات، صفحة التفاصيل، صفحة الإضافة، والحذف.
+ينفذ `StaticSiteGenerator` الخطوات التالية:
 
-## الطباعة
+1. يستخرج مصفوفة المنتجات وقيمها من Python AST.
+2. يتحقق من وجود `id` صالح وفريد لكل منتج.
+3. يطبق وراثة قوالب Jinja2 وblocks.
+4. يقيّم `for` و`if` و`with` وتعابير الطباعة.
+5. يحول `url_for` إلى روابط ملفات نسبية.
+6. يولد صفحة قائمة المنتجات.
+7. يولد صفحة تفاصيل وصفحة حذف لكل منتج.
+8. يولد واجهة الإضافة وصفحة البداية وملفات CSS والصورة الافتراضية.
+9. يفحص كل ملفات HTML ويتأكد من عدم بقاء `{{` أو `{%`.
 
-تطبع العقد عبر `pretty()` بشكل شجري مقروء، وتظهر معلومات العقد مثل:
+الخرج الحالي:
 
-- أسماء HTML tags: `{tag=div}`
-- أسماء blocks: `{name=content}`
-- CSS selectors: `{selector=.btn}`
-- CSS declarations: `{prop=color, value=green}`
+```text
+generated/static_site/
+├── index.html
+├── products.html
+├── product-1.html
+├── product-2.html
+├── delete-product-1.html
+├── delete-product-2.html
+├── add-product.html
+├── README.txt
+└── assets/
+    ├── style.css
+    └── product-placeholder.svg
+```
 
-كما تتم طباعة:
+## 9. التنقل بين الواجهات
 
-- Python AST
-- Python symbol table
-- Python data sources
-- Template context bindings
-- Template data flow
-- Template AST
-- Template symbol table
-- CSS AST
-- Semantic diagnostics
-- Code generation output
+يحوّل المولد endpoints إلى ملفات ثابتة:
 
-## أوامر التشغيل
+| Flask endpoint | الرابط النهائي |
+|---|---|
+| `products_list` | `products.html` |
+| `add_product` | `add-product.html` |
+| `product_detail(product_id=1)` | `product-1.html` |
+| `delete_product(product_id=1)` | `delete-product-1.html` |
+| `static/style.css` | `assets/style.css` |
 
-ترجمة المشروع:
+لذلك تعمل روابط القائمة والتفاصيل والإضافة والحذف عند فتح الموقع مباشرة، ولا تعطي 404 للمنتجات المولدة.
+
+## 10. إضافة منتج أو حذفه
+
+الموقع الناتج ثابت، لذلك لا يستطيع المتصفح تعديل ملف Python. عملية التعديل الصحيحة هي:
+
+1. تعديل مصفوفة `products` في `Tests/app_py.txt`.
+2. إعادة تشغيل المترجم.
+3. يعيد المولد إنشاء القائمة وصفحات التفاصيل والحذف والروابط.
+
+تم اختبار إضافة منتج ثالث إلى نسخة اختبارية من Python. أنشأ المولد `product-3.html`، أضاف رابطه إلى `products.html`، ورندر بياناته، ثم حُذف الملف تلقائياً عند إعادة التوليد بالبيانات الأصلية.
+
+## 11. التشغيل
+
+### الأمر الموصى به
 
 ```powershell
-javac -cp lib\antlr-4.13.2-complete.jar -d out src\antlr\*.java src\AST\*.java src\AST\template\*.java src\AST\template\expr\*.java src\AST\css\*.java src\Symbol\*.java src\Analysis\*.java src\Generator\*.java src\Visitor\*.java src\app\*.java
+powershell -ExecutionPolicy Bypass -File .\run_project.ps1
 ```
 
-تشغيل المثال الصحيح:
+### الأوامر اليدوية
 
 ```powershell
-java -cp "out;lib\antlr-4.13.2-complete.jar" app.Main
+javac -encoding UTF-8 -cp lib\antlr-4.13.2-complete.jar -d out src\antlr\*.java src\AST\*.java src\AST\template\*.java src\AST\template\expr\*.java src\AST\css\*.java src\Symbol\*.java src\Analysis\*.java src\Generator\*.java src\Visitor\*.java src\app\*.java
+java "-Dfile.encoding=UTF-8" -cp "out;lib\antlr-4.13.2-complete.jar" app.Main
 ```
 
-تشغيل اختبار الأخطاء الدلالية:
+بعد التوليد افتح:
+
+```text
+generated/static_site/index.html
+```
+
+## 12. اختبارات المشروع
+
+### المدخل الصحيح
+
+يشغله `run_project.ps1`. النتيجة المتوقعة:
+
+```text
+No syntax errors found.
+No semantic errors found.
+Static site verification passed.
+```
+
+### الأخطاء الدلالية
 
 ```powershell
-java -cp "out;lib\antlr-4.13.2-complete.jar" app.Main Tests\semantic\bad_app_py.txt Tests\semantic\bad_products_html.txt Tests\semantic\bad_detail_html.txt
+java "-Dfile.encoding=UTF-8" -cp "out;lib\antlr-4.13.2-complete.jar" app.Main Tests\semantic\bad_app_py.txt Tests\semantic\bad_products_html.txt Tests\semantic\bad_detail_html.txt
 ```
 
-تشغيل التطبيق المولد:
+النتيجة: 12 تشخيصاً دلالياً وعدم تنفيذ التوليد.
+
+### الخطأ النحوي
 
 ```powershell
-cd generated\flask_app
-python app.py
+java "-Dfile.encoding=UTF-8" -cp "out;lib\antlr-4.13.2-complete.jar" app.Main Tests\syntax\bad_syntax_py.txt
 ```
 
-## ملاحظات ختامية
+النتيجة: طباعة خطأ syntax وعدم تنفيذ التوليد.
 
-يغطي المشروع المتطلبات الأساسية للمادة: lexer/parser، بناء AST، جداول الرموز، الربط بين Python وJinja، تحليل دلالي متعدد الأخطاء، توليد كود، طباعة العقد، وتجهيز اختبارات صحيحة وخاطئة.
+### فحص الموقع الناتج
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\Tests\verify_static_site.ps1
+```
+
+يفحص السكربت جميع صفحات HTML، ويتأكد من خلوها من Jinja ومن وجود أهداف الروابط والملفات المحلية. الفحص الحالي يمر على 7 صفحات و46 رابطاً أو asset محلياً بنجاح.
+
+## 13. نقاط العرض في المقابلة
+
+- القوالب الموجودة في `Tests` تحتوي Jinja لأنها مدخلات للمترجم.
+- الملفات الموجودة في `generated/static_site` لا تحتوي Jinja إطلاقاً.
+- صفحات التفاصيل لا تحتاج Flask؛ لكل منتج ملف HTML مستقل.
+- تغيير بيانات Python يتطلب إعادة التوليد لأن الخرج ثابت.
+- المولد يستخدم Python AST وTemplate AST ولا ينسخ ملفات الإدخال.
+- أي خطأ نحوي أو دلالي يمنع إنتاج خرج غير صحيح.

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}حذف {{ product.name }} - متجر المنتجات{% endblock %}
+
+{% block content %}
+<div class="form-card delete-card">
+    <span class="danger-label">حذف منتج</span>
+    <h1>{{ product.name }}</h1>
+    <p>لحذف هذا المنتج من الموقع الثابت، احذف العنصر ذي الرقم {{ product.id }} من مصفوفة products ثم أعد تشغيل المولد.</p>
+
+    <div class="alert alert-warning">
+        الموقع الناتج ثابت؛ لذلك لا يغيّر المتصفح ملف Python ولا يحذف البيانات بنفسه.
+    </div>
+
+    <div class="action-row">
+        <a href="{{ url_for('product_detail', product_id=product.id) }}"
+           class="btn btn-outline-secondary">العودة للتفاصيل</a>
+        <a href="{{ url_for('products_list') }}" class="btn btn-primary">العودة للمنتجات</a>
+    </div>
+</div>
+{% endblock %}

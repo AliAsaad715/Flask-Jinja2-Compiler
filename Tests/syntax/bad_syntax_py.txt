@@ -1,0 +1,7 @@
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route('/broken')
+def broken_page()
+    return 'missing colon'
