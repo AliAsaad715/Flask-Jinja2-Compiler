@@ -5,12 +5,25 @@ import AST.template.*;
 import AST.template.expr.*;
 import antlr.TemplateParser;
 import antlr.TemplateParserBaseVisitor;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Builds the Jinja2/HTML abstract syntax tree from the parse tree.
+ *
+ * <p>Expressions are built by walking the parse tree directly. An earlier version
+ * flattened each expression back to text with {@code ctx.getText()} and re-parsed
+ * it with string splitting; because {@code getText()} drops whitespace, word
+ * operators fused into their operands and {@code user and admin} became a single
+ * identifier named {@code userandadmin}.
+ */
 public class TemplateAstBuilder extends TemplateParserBaseVisitor<AstNode> {
+
+    // ---------------------------------------------------------------- template
 
     @Override
     public AstNode visitTemplate(TemplateParser.TemplateContext ctx) {
@@ -48,6 +61,11 @@ public class TemplateAstBuilder extends TemplateParserBaseVisitor<AstNode> {
     }
 
     @Override
+    public AstNode visitJinjaWithItem(TemplateParser.JinjaWithItemContext ctx) {
+        return visit(ctx.jinjaWith());
+    }
+
+    @Override
     public AstNode visitJinjaExtendsItem(TemplateParser.JinjaExtendsItemContext ctx) {
         return visit(ctx.jinjaExtends());
     }
@@ -62,60 +80,66 @@ public class TemplateAstBuilder extends TemplateParserBaseVisitor<AstNode> {
         return new TextNode(lineOf(ctx.getStart()), ctx.TEXT().getText());
     }
 
+    // -------------------------------------------------------------------- html
+
     @Override
     public AstNode visitHtmlNormalElement(TemplateParser.HtmlNormalElementContext ctx) {
         TemplateParser.OpenTagContext open = ctx.normalElement().openTag();
-        String tagName = open.TAG_NAME().getText();
-        ElementNode el = new ElementNode(lineOf(open.getStart()), tagName);
+        ElementNode el = new ElementNode(lineOf(open.getStart()), open.TAG_NAME().getText());
 
         for (TemplateParser.AttributeContext a : open.attribute()) {
             AstNode attr = visit(a);
             if (attr instanceof AttributeNode) el.addAttribute((AttributeNode) attr);
         }
-
         for (TemplateParser.ItemContext it : ctx.normalElement().item()) {
             AstNode child = visit(it);
             if (child instanceof TemplateItemNode) el.addBodyItem((TemplateItemNode) child);
         }
-
         return el;
     }
 
     @Override
     public AstNode visitHtmlSelfClosingElement(TemplateParser.HtmlSelfClosingElementContext ctx) {
         TemplateParser.SelfClosingElementContext sc = ctx.selfClosingElement();
-        String tagName = sc.TAG_NAME().getText();
+        String tagName = sc.TAG_NAME() != null ? sc.TAG_NAME().getText() : sc.VOID_TAG_NAME().getText();
         ElementNode el = new ElementNode(lineOf(sc.getStart()), tagName);
 
         for (TemplateParser.AttributeContext a : sc.attribute()) {
             AstNode attr = visit(a);
             if (attr instanceof AttributeNode) el.addAttribute((AttributeNode) attr);
         }
+        return el;
+    }
 
+    @Override
+    public AstNode visitHtmlVoidElement(TemplateParser.HtmlVoidElementContext ctx) {
+        TemplateParser.VoidElementContext v = ctx.voidElement();
+        ElementNode el = new ElementNode(lineOf(v.getStart()), v.VOID_TAG_NAME().getText());
+
+        for (TemplateParser.AttributeContext a : v.attribute()) {
+            AstNode attr = visit(a);
+            if (attr instanceof AttributeNode) el.addAttribute((AttributeNode) attr);
+        }
         return el;
     }
 
     @Override
     public AstNode visitAttributeKV(TemplateParser.AttributeKVContext ctx) {
-        String name = ctx.TAG_NAME().getText();
-        AttributeNode attr = new AttributeNode(lineOf(ctx.getStart()), name);
+        AttributeNode attr = new AttributeNode(
+                lineOf(ctx.getStart()), ctx.TAG_NAME().getText(), ctx.attrValue() != null);
 
         if (ctx.attrValue() != null) {
-            TemplateParser.AttrValueContext v = ctx.attrValue();
             List<TemplateParser.AttrValuePartContext> parts;
-
-            if (v instanceof TemplateParser.AttrDoubleQuotedContext) {
-                parts = ((TemplateParser.AttrDoubleQuotedContext) v).attrValuePart();
+            if (ctx.attrValue() instanceof TemplateParser.AttrDoubleQuotedContext) {
+                parts = ((TemplateParser.AttrDoubleQuotedContext) ctx.attrValue()).attrValuePart();
             } else {
-                parts = ((TemplateParser.AttrSingleQuotedContext) v).attrValuePart();
+                parts = ((TemplateParser.AttrSingleQuotedContext) ctx.attrValue()).attrValuePart();
             }
-
             for (TemplateParser.AttrValuePartContext p : parts) {
                 AstNode part = visit(p);
                 if (part instanceof AttributeValuePartNode) attr.addValuePart((AttributeValuePartNode) part);
             }
         }
-
         return attr;
     }
 
@@ -126,13 +150,15 @@ public class TemplateAstBuilder extends TemplateParserBaseVisitor<AstNode> {
 
     @Override
     public AstNode visitAttrJinjaPrintValuePart(TemplateParser.AttrJinjaPrintValuePartContext ctx) {
-        ExprNode expr = buildExpr(ctx.jinjaPrint().expr(), ctx.getStart());
+        ExprNode expr = buildExpr(ctx.jinjaPrint().expr());
         return new AttributeExprPartNode(lineOf(ctx.getStart()), expr);
     }
 
+    // ------------------------------------------------------------------- jinja
+
     @Override
     public AstNode visitJinjaPrint(TemplateParser.JinjaPrintContext ctx) {
-        return new PrintNode(lineOf(ctx.getStart()), buildExpr(ctx.expr(), ctx.getStart()));
+        return new PrintNode(lineOf(ctx.getStart()), buildExpr(ctx.expr()));
     }
 
     @Override
@@ -153,7 +179,10 @@ public class TemplateAstBuilder extends TemplateParserBaseVisitor<AstNode> {
 
     @Override
     public AstNode visitJinjaFor(TemplateParser.JinjaForContext ctx) {
-        ForNode node = new ForNode(lineOf(ctx.getStart()), ctx.ID().getText(), buildExpr(ctx.expr(), ctx.getStart()));
+        List<String> vars = new ArrayList<>();
+        for (TerminalNode id : ctx.ID()) vars.add(id.getText());
+
+        ForNode node = new ForNode(lineOf(ctx.getStart()), vars, buildExpr(ctx.expr()));
         for (TemplateParser.ForBodyItemContext b : ctx.forBodyItem()) {
             AstNode n = visit(b.item());
             if (n instanceof TemplateItemNode) node.addBodyItem((TemplateItemNode) n);
@@ -163,7 +192,7 @@ public class TemplateAstBuilder extends TemplateParserBaseVisitor<AstNode> {
 
     @Override
     public AstNode visitJinjaIf(TemplateParser.JinjaIfContext ctx) {
-        IfNode root = new IfNode(lineOf(ctx.getStart()), buildExpr(ctx.expr(), ctx.getStart()));
+        IfNode root = new IfNode(lineOf(ctx.getStart()), buildExpr(ctx.expr()));
 
         for (TemplateParser.IfThenBodyItemContext b : ctx.ifThenBodyItem()) {
             AstNode n = visit(b.item());
@@ -171,9 +200,8 @@ public class TemplateAstBuilder extends TemplateParserBaseVisitor<AstNode> {
         }
 
         IfNode current = root;
-
         for (TemplateParser.JinjaElifContext e : ctx.jinjaElif()) {
-            IfNode nested = new IfNode(lineOf(e.getStart()), buildExpr(e.expr(), e.getStart()));
+            IfNode nested = new IfNode(lineOf(e.getStart()), buildExpr(e.expr()));
             for (TemplateParser.ElifBodyItemContext b : e.elifBodyItem()) {
                 AstNode n = visit(b.item());
                 if (n instanceof TemplateItemNode) nested.addThenItem((TemplateItemNode) n);
@@ -188,200 +216,271 @@ public class TemplateAstBuilder extends TemplateParserBaseVisitor<AstNode> {
                 if (n instanceof TemplateItemNode) current.addElseItem((TemplateItemNode) n);
             }
         }
-
         return root;
-    }
-    @Override
-    public AstNode visitHtmlVoidElement(antlr.TemplateParser.HtmlVoidElementContext ctx) {
-        antlr.TemplateParser.VoidElementContext v = ctx.voidElement();
-        String tagName = v.VOID_TAG_NAME().getText();
-        ElementNode el = new ElementNode(lineOf(v.getStart()), tagName);
-
-        for (antlr.TemplateParser.AttributeContext a : v.attribute()) {
-            AstNode attr = visit(a);
-            if (attr instanceof AttributeNode) el.addAttribute((AttributeNode) attr);
-        }
-
-        return el;
-    }
-    @Override
-    public AstNode visitJinjaWithItem(TemplateParser.JinjaWithItemContext ctx) {
-        return visit(ctx.jinjaWith());
     }
 
     @Override
     public AstNode visitJinjaWith(TemplateParser.JinjaWithContext ctx) {
         int line = lineOf(ctx.getStart());
-        String raw = ctx.expr() != null ? ctx.expr().getText() : "";
+        String varName = ctx.name != null ? ctx.name.getText() : null;
+        ExprNode value = ctx.value != null ? buildExpr(ctx.value) : null;
 
-        String varName = null;
-        ExprNode headerOrValue;
-
-
-        int eq = indexOfTopLevel(raw, '=');
-        boolean isAssignment = eq > 0 && !(eq + 1 < raw.length() && raw.charAt(eq + 1) == '=');
-
-        if (isAssignment) {
-            String left = raw.substring(0, eq).trim();
-            String right = raw.substring(eq + 1).trim();
-            if (left.matches("[A-Za-z_][A-Za-z0-9_]*")) {
-                varName = left;
-                headerOrValue = buildExprFromText(line, right);
-            } else {
-                headerOrValue = buildExprFromText(line, raw);
-            }
-        } else {
-            headerOrValue = buildExprFromText(line, raw);
-        }
-
-        WithNode w = new WithNode(line, varName, headerOrValue);
+        WithNode w = new WithNode(line, varName, value);
         for (TemplateParser.WithBodyItemContext b : ctx.withBodyItem()) {
             AstNode n = visit(b.item());
-            if (n instanceof TemplateItemNode) {
-                w.addBodyItem((TemplateItemNode) n);
-            }
+            if (n instanceof TemplateItemNode) w.addBodyItem((TemplateItemNode) n);
         }
         return w;
     }
 
+    // ------------------------------------------------------------- expressions
+    //
+    // One method per precedence level, mirroring the grammar cascade. Each
+    // returns the operand unchanged when no operator is present, so a bare
+    // `product.name` does not accumulate wrapper nodes on the way down.
 
-    private ExprNode buildExpr(TemplateParser.ExprContext ctx, Token fallback) {
-        int line = lineOf(ctx != null ? ctx.getStart() : fallback);
-        String text = ctx != null ? ctx.getText() : "";
-        return buildExprFromText(line, text);
+    // Every builder tolerates a missing or unlabelled context. When the parser
+    // recovers from a syntax error it hands back a bare base context rather than
+    // one of the labelled subtypes, and a blind cast would turn a reported syntax
+    // error into a ClassCastException.
+
+    private ExprNode buildExpr(TemplateParser.ExprContext ctx) {
+        if (ctx == null) return null;
+        return buildCond(ctx.condExpr());
     }
 
-    private ExprNode buildExprFromText(int line, String text) {
-        String s = text == null ? "" : text.trim();
-        if (s.isEmpty()) return new LiteralExpr(line, "");
-        if (isQuoted(s)) return new LiteralExpr(line, unquote(s));
-        if (s.matches("[0-9]+")) return new LiteralExpr(line, s);
+    private ExprNode buildCond(TemplateParser.CondExprContext ctx) {
+        if (ctx == null || ctx.orExpr().isEmpty()) return null;
 
-         if (shouldUseRawExpr(s)) {
-            return new RawExpr(line, s);
+        ExprNode value = buildOr(ctx.orExpr(0));
+        if (ctx.IF() == null || ctx.orExpr().size() < 2) return value;
+
+        ExprNode condition = buildOr(ctx.orExpr(1));
+        ExprNode fallback = ctx.condExpr() != null ? buildCond(ctx.condExpr()) : null;
+        return new CondExpr(lineOf(ctx.getStart()), value, condition, fallback);
+    }
+
+    private ExprNode buildOr(TemplateParser.OrExprContext ctx) {
+        if (ctx == null || ctx.andExpr().isEmpty()) return null;
+
+        ExprNode left = buildAnd(ctx.andExpr(0));
+        for (int i = 1; i < ctx.andExpr().size(); i++) {
+            left = new BinaryExpr(lineOf(ctx.getStart()), "or", left, buildAnd(ctx.andExpr(i)));
         }
+        return left;
+    }
 
-        int paren = indexOfTopLevel(s, '(');
-        if (paren > 0 && s.endsWith(")")) {
-            String head = s.substring(0, paren);
-            String inside = s.substring(paren + 1, s.length() - 1);
+    private ExprNode buildAnd(TemplateParser.AndExprContext ctx) {
+        if (ctx == null || ctx.notExpr().isEmpty()) return null;
 
-            ExprNode base = buildAccessChain(line, head);
-            String fn = base instanceof NameExpr ? ((NameExpr) base).getName() : head;
-
-            CallExpr call = new CallExpr(line, fn);
-            for (CallArgNode a : parseArgs(line, inside)) call.addArg(a);
-            return call;
+        ExprNode left = buildNot(ctx.notExpr(0));
+        for (int i = 1; i < ctx.notExpr().size(); i++) {
+            left = new BinaryExpr(lineOf(ctx.getStart()), "and", left, buildNot(ctx.notExpr(i)));
         }
-
-        return buildAccessChain(line, s);
+        return left;
     }
 
-    private boolean shouldUseRawExpr(String s) {
-        return s.indexOf('+') >= 0
-                || s.indexOf('-') >= 0
-                || s.indexOf('*') >= 0
-                || s.indexOf('/') >= 0
-                || s.indexOf('>') >= 0
-                || s.indexOf('<') >= 0
-                || s.indexOf('=') >= 0
-                || s.indexOf('!') >= 0
-                || s.indexOf('|') >= 0
-                || s.indexOf('[') >= 0
-                || s.indexOf(']') >= 0
-                || s.indexOf(':') >= 0;
+    private ExprNode buildNot(TemplateParser.NotExprContext ctx) {
+        if (ctx instanceof TemplateParser.NotUnaryContext) {
+            TemplateParser.NotUnaryContext n = (TemplateParser.NotUnaryContext) ctx;
+            return new UnaryExpr(lineOf(n.getStart()), "not", buildNot(n.notExpr()));
+        }
+        if (ctx instanceof TemplateParser.NotPassthroughContext) {
+            return buildComparison(((TemplateParser.NotPassthroughContext) ctx).comparison());
+        }
+        return null;
     }
 
-    private ExprNode buildAccessChain(int line, String s) {
-        String[] parts = s.split("\\.");
-        ExprNode base = new NameExpr(line, parts[0]);
-        for (int i = 1; i < parts.length; i++) base = new AttrExpr(line, base, parts[i]);
-        return base;
+    private ExprNode buildComparison(TemplateParser.ComparisonContext ctx) {
+        if (ctx == null || ctx.filterExpr().isEmpty()) return null;
+
+        ExprNode left = buildFilter(ctx.filterExpr(0));
+        for (int i = 1; i < ctx.filterExpr().size(); i++) {
+            String op = compOpText(ctx.compOp(i - 1));
+            left = new BinaryExpr(lineOf(ctx.getStart()), op, left, buildFilter(ctx.filterExpr(i)));
+        }
+        return left;
     }
 
-    private List<CallArgNode> parseArgs(int line, String inside) {
-        List<String> chunks = splitTopLevelCommas(inside);
-        List<CallArgNode> args = new ArrayList<>();
-        for (String c : chunks) {
-            String part = c.trim();
-            if (part.isEmpty()) continue;
+    private String compOpText(TemplateParser.CompOpContext ctx) {
+        if (ctx instanceof TemplateParser.CompEqContext)    return "==";
+        if (ctx instanceof TemplateParser.CompNotEqContext) return "!=";
+        if (ctx instanceof TemplateParser.CompLeContext)    return "<=";
+        if (ctx instanceof TemplateParser.CompGeContext)    return ">=";
+        if (ctx instanceof TemplateParser.CompLtContext)    return "<";
+        if (ctx instanceof TemplateParser.CompGtContext)    return ">";
+        if (ctx instanceof TemplateParser.CompNotInContext) return "not in";
+        if (ctx instanceof TemplateParser.CompInContext)    return "in";
+        if (ctx instanceof TemplateParser.CompIsNotContext) return "is not";
+        return "is";
+    }
 
-            int eq = indexOfTopLevel(part, '=');
-            if (eq > 0) {
-                String name = part.substring(0, eq).trim();
-                String valueText = part.substring(eq + 1).trim();
-                ExprNode value = buildExprFromText(line, valueText);
-                args.add(new CallArgNode(line, name, value));
-            } else {
-                ExprNode value = buildExprFromText(line, part);
-                args.add(new CallArgNode(line, "", value));
+    private ExprNode buildFilter(TemplateParser.FilterExprContext ctx) {
+        if (ctx == null) return null;
+
+        ExprNode value = buildAdditive(ctx.additive());
+        for (TemplateParser.FilterCallContext f : ctx.filterCall()) {
+            FilterExpr filter = new FilterExpr(lineOf(f.getStart()), value, f.ID().getText());
+            if (f.argList() != null) {
+                for (CallArgNode a : buildArgs(f.argList())) filter.addArg(a);
+            }
+            value = filter;
+        }
+        return value;
+    }
+
+    private ExprNode buildAdditive(TemplateParser.AdditiveContext ctx) {
+        if (ctx == null || ctx.multiplicative().isEmpty()) return null;
+
+        ExprNode left = buildMultiplicative(ctx.multiplicative(0));
+        for (int i = 1; i < ctx.multiplicative().size(); i++) {
+            String op = operatorBetween(ctx, ctx.multiplicative(i - 1), ctx.multiplicative(i));
+            left = new BinaryExpr(lineOf(ctx.getStart()), op, left, buildMultiplicative(ctx.multiplicative(i)));
+        }
+        return left;
+    }
+
+    private ExprNode buildMultiplicative(TemplateParser.MultiplicativeContext ctx) {
+        if (ctx == null || ctx.unary().isEmpty()) return null;
+
+        ExprNode left = buildUnary(ctx.unary(0));
+        for (int i = 1; i < ctx.unary().size(); i++) {
+            String op = operatorBetween(ctx, ctx.unary(i - 1), ctx.unary(i));
+            left = new BinaryExpr(lineOf(ctx.getStart()), op, left, buildUnary(ctx.unary(i)));
+        }
+        return left;
+    }
+
+    /**
+     * Recovers the operator token sitting between two operands. The grammar keeps
+     * repeated binary operators in a flat list, so the operator is the terminal
+     * child positioned between them.
+     */
+    private String operatorBetween(ParserRuleContext parent, ParserRuleContext left, ParserRuleContext right) {
+        boolean seenLeft = false;
+        for (int i = 0; i < parent.getChildCount(); i++) {
+            Object child = parent.getChild(i);
+            if (child == left) { seenLeft = true; continue; }
+            if (child == right) break;
+            if (seenLeft && child instanceof TerminalNode) {
+                return ((TerminalNode) child).getText();
             }
         }
-        return args;
+        return "?";
     }
 
-    private List<String> splitTopLevelCommas(String s) {
-        List<String> out = new ArrayList<>();
-        StringBuilder cur = new StringBuilder();
-        int depth = 0;
-        boolean inS = false;
-        boolean inD = false;
+    private ExprNode buildUnary(TemplateParser.UnaryContext ctx) {
+        if (ctx instanceof TemplateParser.UnaryMinusContext) {
+            TemplateParser.UnaryMinusContext m = (TemplateParser.UnaryMinusContext) ctx;
+            return new UnaryExpr(lineOf(m.getStart()), "-", buildUnary(m.unary()));
+        }
+        if (ctx instanceof TemplateParser.UnaryPassthroughContext) {
+            return buildPostfix(((TemplateParser.UnaryPassthroughContext) ctx).postfix());
+        }
+        return null;
+    }
 
-        for (int i = 0; i < s.length(); i++) {
-            char ch = s.charAt(i);
+    private ExprNode buildPostfix(TemplateParser.PostfixContext ctx) {
+        if (ctx == null) return null;
 
-            if (ch == '\'' && !inD) inS = !inS;
-            else if (ch == '"' && !inS) inD = !inD;
-            else if (!inS && !inD) {
-                if (ch == '(' || ch == '[' || ch == '{') depth++;
-                else if (ch == ')' || ch == ']' || ch == '}') depth--;
-                else if (ch == ',' && depth == 0) {
-                    out.add(cur.toString());
-                    cur.setLength(0);
-                    continue;
+        ExprNode current = buildPrimary(ctx.primary());
+
+        for (TemplateParser.TrailerContext tr : ctx.trailer()) {
+            int line = lineOf(tr.getStart());
+
+            if (tr instanceof TemplateParser.TrailerAttrContext) {
+                TemplateParser.TrailerAttrContext ta = (TemplateParser.TrailerAttrContext) tr;
+                current = new AttrExpr(line, current, ta.ID().getText());
+
+            } else if (tr instanceof TemplateParser.TrailerCallContext) {
+                TemplateParser.TrailerCallContext tc = (TemplateParser.TrailerCallContext) tr;
+                CallExpr call = new CallExpr(line, current);
+                if (tc.argList() != null) {
+                    for (CallArgNode a : buildArgs(tc.argList())) call.addArg(a);
                 }
-            }
+                current = call;
 
-            cur.append(ch);
+            } else {
+                TemplateParser.TrailerIndexContext ti = (TemplateParser.TrailerIndexContext) tr;
+                current = buildSubscript(line, current, ti.subscript());
+            }
+        }
+        return current;
+    }
+
+    private ExprNode buildSubscript(int line, ExprNode target, TemplateParser.SubscriptContext ctx) {
+        if (ctx instanceof TemplateParser.SubscriptIndexContext) {
+            TemplateParser.SubscriptIndexContext idx = (TemplateParser.SubscriptIndexContext) ctx;
+            return new IndexExpr(line, target, buildExpr(idx.expr()));
+        }
+        if (ctx instanceof TemplateParser.SubscriptSliceContext) {
+            TemplateParser.SubscriptSliceContext s = (TemplateParser.SubscriptSliceContext) ctx;
+            return new SliceExpr(line, target, buildExpr(s.start), buildExpr(s.stop));
+        }
+        return target;
+    }
+
+    private ExprNode buildPrimary(TemplateParser.PrimaryContext ctx) {
+        if (ctx == null) return null;
+        int line = lineOf(ctx.getStart());
+
+        if (ctx instanceof TemplateParser.PrimaryIdContext) {
+            return new NameExpr(line, ((TemplateParser.PrimaryIdContext) ctx).ID().getText());
+        }
+        if (ctx instanceof TemplateParser.PrimaryIntContext) {
+            return new LiteralExpr(line, ((TemplateParser.PrimaryIntContext) ctx).INT().getText());
+        }
+        if (ctx instanceof TemplateParser.PrimaryFloatContext) {
+            return new LiteralExpr(line, ((TemplateParser.PrimaryFloatContext) ctx).FLOAT().getText());
+        }
+        if (ctx instanceof TemplateParser.PrimaryStringContext) {
+            return new LiteralExpr(line, unquote(((TemplateParser.PrimaryStringContext) ctx).STRING().getText()));
+        }
+        if (ctx instanceof TemplateParser.PrimaryTrueContext)  return new LiteralExpr(line, "True");
+        if (ctx instanceof TemplateParser.PrimaryFalseContext) return new LiteralExpr(line, "False");
+        if (ctx instanceof TemplateParser.PrimaryNoneContext)  return new LiteralExpr(line, "None");
+
+        if (ctx instanceof TemplateParser.PrimaryParenContext) {
+            return buildExpr(((TemplateParser.PrimaryParenContext) ctx).expr());
         }
 
-        if (cur.length() > 0) out.add(cur.toString());
+        if (ctx instanceof TemplateParser.PrimaryListContext) {
+            TemplateParser.PrimaryListContext list = (TemplateParser.PrimaryListContext) ctx;
+            ListExpr items = new ListExpr(line);
+            if (list.exprList() != null) {
+                for (TemplateParser.ExprContext e : list.exprList().expr()) items.addItem(buildExpr(e));
+            }
+            return items;
+        }
+        return null;
+    }
+
+    private List<CallArgNode> buildArgs(TemplateParser.ArgListContext ctx) {
+        List<CallArgNode> out = new ArrayList<>();
+        for (TemplateParser.ArgumentContext a : ctx.argument()) {
+            if (a instanceof TemplateParser.ArgKeywordContext) {
+                TemplateParser.ArgKeywordContext k = (TemplateParser.ArgKeywordContext) a;
+                out.add(new CallArgNode(lineOf(k.getStart()), k.ID().getText(), buildExpr(k.expr())));
+            } else {
+                TemplateParser.ArgPositionalContext p = (TemplateParser.ArgPositionalContext) a;
+                out.add(new CallArgNode(lineOf(p.getStart()), "", buildExpr(p.expr())));
+            }
+        }
         return out;
     }
 
-    private int indexOfTopLevel(String s, char target) {
-        int depth = 0;
-        boolean inS = false;
-        boolean inD = false;
-
-        for (int i = 0; i < s.length(); i++) {
-            char ch = s.charAt(i);
-
-            if (ch == '\'' && !inD) { inS = !inS; continue; }
-            if (ch == '"'  && !inS) { inD = !inD; continue; }
-            if (inS || inD) continue;
-
-            if (depth == 0 && ch == target) return i;
-
-            if (ch == '(' || ch == '[' || ch == '{') depth++;
-            else if (ch == ')' || ch == ']' || ch == '}') depth--;
-        }
-
-        return -1;
-    }
-
-    private boolean isQuoted(String s) {
-        return (s.startsWith("\"") && s.endsWith("\"")) || (s.startsWith("'") && s.endsWith("'"));
-    }
+    // ------------------------------------------------------------------ helpers
 
     private String unquote(String s) {
         String t = s == null ? "" : s.trim();
-        if (isQuoted(t) && t.length() >= 2) return t.substring(1, t.length() - 1);
+        if (t.length() >= 2
+                && ((t.startsWith("\"") && t.endsWith("\"")) || (t.startsWith("'") && t.endsWith("'")))) {
+            return t.substring(1, t.length() - 1);
+        }
         return t;
     }
 
     private int lineOf(Token t) {
         return t == null ? -1 : t.getLine();
     }
-
 }

@@ -19,7 +19,7 @@ public class CssDeclNode extends CssNode {
     }
 
     @Override
-    protected String details() {
+    public String describe() {
         return "{prop=" + property + ", value=" + value + "}";
     }
 }

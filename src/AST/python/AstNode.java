@@ -18,6 +18,11 @@ public abstract class AstNode {
         if (child != null) children.add(child);
     }
 
+    /**
+     * The node's own detail line — the tag name, the operator, the literal value.
+     * Subclasses override this and nothing else; both printers below read it, so
+     * a node described once prints correctly in every format.
+     */
     public String describe() { return ""; }
 
     public String pretty() {
@@ -62,10 +67,6 @@ public abstract class AstNode {
         for (AstNode n : nodes) addChild(n);
     }
 
-    protected String details() {
-        return "";
-    }
-
     public final String printTree() {
         return printTree("");
     }
@@ -78,7 +79,7 @@ public abstract class AstNode {
                 .append(line)
                 .append("]");
 
-        String d = details();
+        String d = describe();
         if (d != null && !d.isEmpty()) {
             sb.append(" ").append(d);
         }
@@ -89,5 +90,24 @@ public abstract class AstNode {
             sb.append(c.printTree(childIndent));
         }
         return sb.toString();
+    }
+
+    /** One node and its immediate children only, for inspecting a single node. */
+    public final String printNode() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(header()).append("\n");
+        for (int i = 0; i < children.size(); i++) {
+            AstNode c = children.get(i);
+            sb.append(i == children.size() - 1 ? "└── " : "├── ")
+              .append(c.header())
+              .append("\n");
+        }
+        if (children.isEmpty()) sb.append("(no children)\n");
+        return sb.toString();
+    }
+
+    private String header() {
+        String d = describe();
+        return nodeName + " (line " + line + ")" + (d == null || d.isBlank() ? "" : " : " + d);
     }
 }

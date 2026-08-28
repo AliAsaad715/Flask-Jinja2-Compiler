@@ -5,10 +5,11 @@ lexer grammar TemplateLexer;
 tokens {
   ATTR_TEXT,
   LPAREN, RPAREN, LBRACK, RBRACK,
-  COMMA, DOT, COLON, PIPE,
+  COMMA, DOT, COLON, PIPE, PERCENT,
   GE, LE, EQEQ, NE, GT, LT,
   PLUS, MINUS, STAR, SLASH,
-  INT, STRING, ID
+  AND, OR, NOT, IS, TRUE, FALSE, NONE,
+  INT, FLOAT, STRING, ID
 }
 
 JINJA_EXPR_OPEN: '{{' -> pushMode(JINJA_EXPR_MODE);
@@ -83,8 +84,23 @@ PLUS_E: '+' -> type(PLUS);
 MINUS_E: '-' -> type(MINUS);
 STAR_E: '*' -> type(STAR);
 SLASH_E: '/' -> type(SLASH);
+PERCENT_E: '%' -> type(PERCENT);
 EQ_E: '=' -> type(EQ);
 
+// Keywords must precede ID_E. ANTLR prefers the longest match, so an
+// identifier such as `android` still lexes as ID rather than AND + `roid`.
+AND_E: 'and' -> type(AND);
+OR_E: 'or' -> type(OR);
+NOT_E: 'not' -> type(NOT);
+IS_E: 'is' -> type(IS);
+IN_E: 'in' -> type(IN);
+IF_E: 'if' -> type(IF);
+ELSE_E: 'else' -> type(ELSE);
+TRUE_E: ('True' | 'true') -> type(TRUE);
+FALSE_E: ('False' | 'false') -> type(FALSE);
+NONE_E: ('None' | 'none') -> type(NONE);
+
+FLOAT_E: [0-9]+ '.' [0-9]+ -> type(FLOAT);
 INT_E: [0-9]+ -> type(INT);
 STRING_E: ('"' (~["\\] | '\\' .)* '"' | '\'' (~['\\] | '\\' .)* '\'') -> type(STRING);
 ID_E: [a-zA-Z_][a-zA-Z0-9_]* -> type(ID);
@@ -106,6 +122,17 @@ ELSE: 'else';
 ENDIF: 'endif';
 SET: 'set';
 
+// Word operators. These must precede ID_S so `and` never lexes as an
+// identifier — that was the cause of `{% if user and admin %}` collapsing
+// into a single symbol named `userandadmin`.
+AND_S: 'and' -> type(AND);
+OR_S: 'or' -> type(OR);
+NOT_S: 'not' -> type(NOT);
+IS_S: 'is' -> type(IS);
+TRUE_S: ('True' | 'true') -> type(TRUE);
+FALSE_S: ('False' | 'false') -> type(FALSE);
+NONE_S: ('None' | 'none') -> type(NONE);
+
 LPAREN_S: '(' -> type(LPAREN);
 RPAREN_S: ')' -> type(RPAREN);
 LBRACK_S: '[' -> type(LBRACK);
@@ -126,8 +153,10 @@ PLUS_S: '+' -> type(PLUS);
 MINUS_S: '-' -> type(MINUS);
 STAR_S: '*' -> type(STAR);
 SLASH_S: '/' -> type(SLASH);
+PERCENT_S: '%' -> type(PERCENT);
 EQ_S: '=' -> type(EQ);
 
+FLOAT_S: [0-9]+ '.' [0-9]+ -> type(FLOAT);
 INT_S: [0-9]+ -> type(INT);
 STRING_S: ('"' (~["\\] | '\\' .)* '"' | '\'' (~['\\] | '\\' .)* '\'') -> type(STRING);
 WITH: 'with';

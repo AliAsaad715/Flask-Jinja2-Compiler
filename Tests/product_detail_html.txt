@@ -39,6 +39,7 @@
 
             <div class="mt-4">
                 <a href="{{ url_for('products_list') }}" class="btn btn-outline-secondary btn-lg">العودة للقائمة</a>
+                <a href="{{ url_for('delete_product_confirm', product_id=product.id) }}" class="btn btn-danger btn-lg">حذف المنتج</a>
             </div>
         </div>
     </div>

@@ -2,13 +2,34 @@ package AST.template;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class TemplateFileNode extends TemplateNode {
     private final List<TemplateItemNode> items = new ArrayList<>();
 
+    /** Context values the generator carried over from the Python tree. */
+    private final Map<String, BoundDataNode> bindings = new LinkedHashMap<>();
+
     public TemplateFileNode(int line) {
         super("TemplateFile", line);
+    }
+
+    /** Attaches one context value from the Python side to this template. */
+    public void bindContext(BoundDataNode binding) {
+        if (binding == null) return;
+        bindings.put(binding.getName(), binding);
+        addChild(binding);
+    }
+
+    public Map<String, BoundDataNode> getBindings() {
+        return Collections.unmodifiableMap(bindings);
+    }
+
+    @Override
+    public String describe() {
+        return bindings.isEmpty() ? "" : "{context=" + bindings.keySet() + "}";
     }
 
     public void addItem(TemplateItemNode item) {

@@ -38,7 +38,7 @@ public class WithNode extends JinjaNode {
         return Collections.unmodifiableList(body);
     }
     @Override
-    protected String details() {
+    public String describe() {
         return varName == null || varName.isEmpty() ? "" : "{var=" + varName + "}";
     }
 }

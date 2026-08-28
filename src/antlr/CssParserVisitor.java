@@ -1,5 +1,5 @@
-// Generated from C:/Users/noureddine/IdeaProjects/Flask-Jinja2-Compiler/src/antlr/CssParser.g4 by ANTLR 4.13.2
-package antlr;
+// Generated from src/antlr/CssParser.g4 by ANTLR 4.13.2
+ package antlr; 
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
 /**

@@ -6,19 +6,28 @@ import java.util.Collections;
 import java.util.List;
 
 public class ForNode extends JinjaNode {
-    private final String varName;
+    private final List<String> varNames = new ArrayList<>();
     private final ExprNode iterable;
     private final List<TemplateItemNode> body = new ArrayList<>();
 
-    public ForNode(int line, String varName, ExprNode iterable) {
+    public ForNode(int line, List<String> varNames, ExprNode iterable) {
         super("JinjaFor", line);
-        this.varName = varName;
+        if (varNames != null) this.varNames.addAll(varNames);
         this.iterable = iterable;
         addChild(iterable);
     }
 
+    public ForNode(int line, String varName, ExprNode iterable) {
+        this(line, List.of(varName), iterable);
+    }
+
+    /** Every loop variable, so `{% for key, value in mapping %}` binds both. */
+    public List<String> getVarNames() {
+        return Collections.unmodifiableList(varNames);
+    }
+
     public String getVarName() {
-        return varName;
+        return varNames.isEmpty() ? "" : varNames.get(0);
     }
 
     public ExprNode getIterable() {
@@ -37,7 +46,7 @@ public class ForNode extends JinjaNode {
     }
 
     @Override
-    protected String details() {
-        return "{var=" + varName + "}";
+    public String describe() {
+        return "{var=" + String.join(", ", varNames) + "}";
     }
 }

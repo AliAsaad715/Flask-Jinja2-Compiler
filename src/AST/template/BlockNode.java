@@ -29,7 +29,7 @@ public class BlockNode extends JinjaNode {
     }
 
     @Override
-    protected String details() {
+    public String describe() {
         return "{name=" + blockName + "}";
     }
 }

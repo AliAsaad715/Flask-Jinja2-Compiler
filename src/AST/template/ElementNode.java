@@ -41,7 +41,7 @@ public class ElementNode extends HtmlNode {
     }
 
     @Override
-    protected String details() {
+    public String describe() {
         return "{tag=" + tagName + "}";
     }
 }

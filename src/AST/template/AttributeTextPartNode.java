@@ -13,7 +13,7 @@ public class AttributeTextPartNode extends AttributeValuePartNode {
     }
 
     @Override
-    protected String details() {
+    public String describe() {
         String t = text == null ? "" : text;
         if (t.length() > 40) t = t.substring(0, 40) + "...";
         return "{text=\"" + t + "\"}";

@@ -1,0 +1,29 @@
+from flask import Flask, render_template
+
+app = Flask(__name__)
+
+products = [
+    {'id': 1, 'name': 'Item'}
+]
+
+def helper(a, b):
+    return a
+
+@app.route('/')
+def index():
+    return render_template('broken.html', title='Hi', unused=products)
+
+@app.route('/')
+def duplicate_url():
+    return render_template('missing.html')
+
+@app.route('/item/<int:item_id>')
+def show_item(wrong_name):
+    return render_template('broken.html', title='Item')
+
+def index():
+    return helper(1)
+
+@app.route('/undef')
+def uses_undefined():
+    return render_template('broken.html', title=undefined_thing)

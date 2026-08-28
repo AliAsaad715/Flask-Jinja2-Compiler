@@ -22,7 +22,7 @@ public class CallArgNode extends AstNode {
     }
 
     @Override
-    protected String details() {
+    public String describe() {
         if (name == null || name.isEmpty()) return "";
         return "{name=" + name + "}";
     }

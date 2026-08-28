@@ -1,0 +1,2 @@
+{% extends "nowhere.html" %}
+{% block content %}<p>never rendered</p>{% endblock %}

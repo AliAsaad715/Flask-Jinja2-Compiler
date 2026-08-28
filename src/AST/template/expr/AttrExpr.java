@@ -20,7 +20,7 @@ public class AttrExpr extends ExprNode {
     }
 
     @Override
-    protected String details() {
+    public String describe() {
         return "{attr=" + attrName + "}";
     }
 }

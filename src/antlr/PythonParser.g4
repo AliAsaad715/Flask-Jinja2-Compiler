@@ -15,8 +15,9 @@ stmt
     | NEWLINE            #StmtNewline
     ;
 
+// The value list is optional so a bare `return` parses.
 return_stmt
-    : RETURN expr (COMMA expr)* end_stmt
+    : RETURN (expr (COMMA expr)*)? end_stmt
     ;
 
 import_stmt
@@ -96,14 +97,30 @@ comparison
     ;
 
 comp_op
-    : EQEQ   #CompEq
-    | NOTEQ  #CompNotEq
-    | IN     #CompIn
-    | IS     #CompIs
+    : EQEQ    #CompEq
+    | NOTEQ   #CompNotEq
+    | LE      #CompLE
+    | GE      #CompGE
+    | LT      #CompLT
+    | GT      #CompGT
+    | NOT IN  #CompNotIn
+    | IN      #CompIn
+    | IS NOT  #CompIsNot
+    | IS      #CompIs
     ;
 
+// Precedence cascade: '+'/'-' bind loosest, then '*'/'/'/'%', then unary '-'.
 arith_expr
-    : atom_expr (PLUS atom_expr)*
+    : term (op+=(PLUS | MINUS) term)*
+    ;
+
+term
+    : factor (op+=(STAR | SLASH | PERCENT) factor)*
+    ;
+
+factor
+    : MINUS factor
+    | atom_expr
     ;
 
 atom_expr

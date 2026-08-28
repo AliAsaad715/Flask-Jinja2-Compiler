@@ -13,7 +13,7 @@ public class NameExpr extends ExprNode {
     }
 
     @Override
-    protected String details() {
+    public String describe() {
         return "{name=" + name + "}";
     }
 }

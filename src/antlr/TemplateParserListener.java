@@ -1,5 +1,5 @@
-// Generated from C:/Users/noureddine/IdeaProjects/Flask-Jinja2-Compiler/src/antlr/TemplateParser.g4 by ANTLR 4.13.2
-package antlr;
+// Generated from src/antlr/TemplateParser.g4 by ANTLR 4.13.2
+ package antlr; 
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**
@@ -412,131 +412,483 @@ public interface TemplateParserListener extends ParseTreeListener {
 	 */
 	void exitJinjaPrint(TemplateParser.JinjaPrintContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code ExprSequence}
-	 * labeled alternative in {@link TemplateParser#expr}.
+	 * Enter a parse tree produced by {@link TemplateParser#expr}.
 	 * @param ctx the parse tree
 	 */
-	void enterExprSequence(TemplateParser.ExprSequenceContext ctx);
+	void enterExpr(TemplateParser.ExprContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code ExprSequence}
-	 * labeled alternative in {@link TemplateParser#expr}.
+	 * Exit a parse tree produced by {@link TemplateParser#expr}.
 	 * @param ctx the parse tree
 	 */
-	void exitExprSequence(TemplateParser.ExprSequenceContext ctx);
+	void exitExpr(TemplateParser.ExprContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code ExprAtomUnit}
-	 * labeled alternative in {@link TemplateParser#exprUnit}.
+	 * Enter a parse tree produced by {@link TemplateParser#condExpr}.
 	 * @param ctx the parse tree
 	 */
-	void enterExprAtomUnit(TemplateParser.ExprAtomUnitContext ctx);
+	void enterCondExpr(TemplateParser.CondExprContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code ExprAtomUnit}
-	 * labeled alternative in {@link TemplateParser#exprUnit}.
+	 * Exit a parse tree produced by {@link TemplateParser#condExpr}.
 	 * @param ctx the parse tree
 	 */
-	void exitExprAtomUnit(TemplateParser.ExprAtomUnitContext ctx);
+	void exitCondExpr(TemplateParser.CondExprContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code ExprOpUnit}
-	 * labeled alternative in {@link TemplateParser#exprUnit}.
+	 * Enter a parse tree produced by {@link TemplateParser#orExpr}.
 	 * @param ctx the parse tree
 	 */
-	void enterExprOpUnit(TemplateParser.ExprOpUnitContext ctx);
+	void enterOrExpr(TemplateParser.OrExprContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code ExprOpUnit}
-	 * labeled alternative in {@link TemplateParser#exprUnit}.
+	 * Exit a parse tree produced by {@link TemplateParser#orExpr}.
 	 * @param ctx the parse tree
 	 */
-	void exitExprOpUnit(TemplateParser.ExprOpUnitContext ctx);
+	void exitOrExpr(TemplateParser.OrExprContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code ExprPunctUnit}
-	 * labeled alternative in {@link TemplateParser#exprUnit}.
+	 * Enter a parse tree produced by {@link TemplateParser#andExpr}.
 	 * @param ctx the parse tree
 	 */
-	void enterExprPunctUnit(TemplateParser.ExprPunctUnitContext ctx);
+	void enterAndExpr(TemplateParser.AndExprContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code ExprPunctUnit}
-	 * labeled alternative in {@link TemplateParser#exprUnit}.
+	 * Exit a parse tree produced by {@link TemplateParser#andExpr}.
 	 * @param ctx the parse tree
 	 */
-	void exitExprPunctUnit(TemplateParser.ExprPunctUnitContext ctx);
+	void exitAndExpr(TemplateParser.AndExprContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code AtomId}
-	 * labeled alternative in {@link TemplateParser#atom}.
+	 * Enter a parse tree produced by the {@code NotUnary}
+	 * labeled alternative in {@link TemplateParser#notExpr}.
 	 * @param ctx the parse tree
 	 */
-	void enterAtomId(TemplateParser.AtomIdContext ctx);
+	void enterNotUnary(TemplateParser.NotUnaryContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code AtomId}
-	 * labeled alternative in {@link TemplateParser#atom}.
+	 * Exit a parse tree produced by the {@code NotUnary}
+	 * labeled alternative in {@link TemplateParser#notExpr}.
 	 * @param ctx the parse tree
 	 */
-	void exitAtomId(TemplateParser.AtomIdContext ctx);
+	void exitNotUnary(TemplateParser.NotUnaryContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code AtomInt}
-	 * labeled alternative in {@link TemplateParser#atom}.
+	 * Enter a parse tree produced by the {@code NotPassthrough}
+	 * labeled alternative in {@link TemplateParser#notExpr}.
 	 * @param ctx the parse tree
 	 */
-	void enterAtomInt(TemplateParser.AtomIntContext ctx);
+	void enterNotPassthrough(TemplateParser.NotPassthroughContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code AtomInt}
-	 * labeled alternative in {@link TemplateParser#atom}.
+	 * Exit a parse tree produced by the {@code NotPassthrough}
+	 * labeled alternative in {@link TemplateParser#notExpr}.
 	 * @param ctx the parse tree
 	 */
-	void exitAtomInt(TemplateParser.AtomIntContext ctx);
+	void exitNotPassthrough(TemplateParser.NotPassthroughContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code AtomString}
-	 * labeled alternative in {@link TemplateParser#atom}.
+	 * Enter a parse tree produced by {@link TemplateParser#comparison}.
 	 * @param ctx the parse tree
 	 */
-	void enterAtomString(TemplateParser.AtomStringContext ctx);
+	void enterComparison(TemplateParser.ComparisonContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code AtomString}
-	 * labeled alternative in {@link TemplateParser#atom}.
+	 * Exit a parse tree produced by {@link TemplateParser#comparison}.
 	 * @param ctx the parse tree
 	 */
-	void exitAtomString(TemplateParser.AtomStringContext ctx);
+	void exitComparison(TemplateParser.ComparisonContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code AtomParen}
-	 * labeled alternative in {@link TemplateParser#atom}.
+	 * Enter a parse tree produced by the {@code CompEq}
+	 * labeled alternative in {@link TemplateParser#compOp}.
 	 * @param ctx the parse tree
 	 */
-	void enterAtomParen(TemplateParser.AtomParenContext ctx);
+	void enterCompEq(TemplateParser.CompEqContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code AtomParen}
-	 * labeled alternative in {@link TemplateParser#atom}.
+	 * Exit a parse tree produced by the {@code CompEq}
+	 * labeled alternative in {@link TemplateParser#compOp}.
 	 * @param ctx the parse tree
 	 */
-	void exitAtomParen(TemplateParser.AtomParenContext ctx);
+	void exitCompEq(TemplateParser.CompEqContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code AtomBracket}
-	 * labeled alternative in {@link TemplateParser#atom}.
+	 * Enter a parse tree produced by the {@code CompNotEq}
+	 * labeled alternative in {@link TemplateParser#compOp}.
 	 * @param ctx the parse tree
 	 */
-	void enterAtomBracket(TemplateParser.AtomBracketContext ctx);
+	void enterCompNotEq(TemplateParser.CompNotEqContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code AtomBracket}
-	 * labeled alternative in {@link TemplateParser#atom}.
+	 * Exit a parse tree produced by the {@code CompNotEq}
+	 * labeled alternative in {@link TemplateParser#compOp}.
 	 * @param ctx the parse tree
 	 */
-	void exitAtomBracket(TemplateParser.AtomBracketContext ctx);
+	void exitCompNotEq(TemplateParser.CompNotEqContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link TemplateParser#op}.
+	 * Enter a parse tree produced by the {@code CompLe}
+	 * labeled alternative in {@link TemplateParser#compOp}.
 	 * @param ctx the parse tree
 	 */
-	void enterOp(TemplateParser.OpContext ctx);
+	void enterCompLe(TemplateParser.CompLeContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link TemplateParser#op}.
+	 * Exit a parse tree produced by the {@code CompLe}
+	 * labeled alternative in {@link TemplateParser#compOp}.
 	 * @param ctx the parse tree
 	 */
-	void exitOp(TemplateParser.OpContext ctx);
+	void exitCompLe(TemplateParser.CompLeContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link TemplateParser#punct}.
+	 * Enter a parse tree produced by the {@code CompGe}
+	 * labeled alternative in {@link TemplateParser#compOp}.
 	 * @param ctx the parse tree
 	 */
-	void enterPunct(TemplateParser.PunctContext ctx);
+	void enterCompGe(TemplateParser.CompGeContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link TemplateParser#punct}.
+	 * Exit a parse tree produced by the {@code CompGe}
+	 * labeled alternative in {@link TemplateParser#compOp}.
 	 * @param ctx the parse tree
 	 */
-	void exitPunct(TemplateParser.PunctContext ctx);
+	void exitCompGe(TemplateParser.CompGeContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code CompLt}
+	 * labeled alternative in {@link TemplateParser#compOp}.
+	 * @param ctx the parse tree
+	 */
+	void enterCompLt(TemplateParser.CompLtContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code CompLt}
+	 * labeled alternative in {@link TemplateParser#compOp}.
+	 * @param ctx the parse tree
+	 */
+	void exitCompLt(TemplateParser.CompLtContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code CompGt}
+	 * labeled alternative in {@link TemplateParser#compOp}.
+	 * @param ctx the parse tree
+	 */
+	void enterCompGt(TemplateParser.CompGtContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code CompGt}
+	 * labeled alternative in {@link TemplateParser#compOp}.
+	 * @param ctx the parse tree
+	 */
+	void exitCompGt(TemplateParser.CompGtContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code CompNotIn}
+	 * labeled alternative in {@link TemplateParser#compOp}.
+	 * @param ctx the parse tree
+	 */
+	void enterCompNotIn(TemplateParser.CompNotInContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code CompNotIn}
+	 * labeled alternative in {@link TemplateParser#compOp}.
+	 * @param ctx the parse tree
+	 */
+	void exitCompNotIn(TemplateParser.CompNotInContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code CompIn}
+	 * labeled alternative in {@link TemplateParser#compOp}.
+	 * @param ctx the parse tree
+	 */
+	void enterCompIn(TemplateParser.CompInContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code CompIn}
+	 * labeled alternative in {@link TemplateParser#compOp}.
+	 * @param ctx the parse tree
+	 */
+	void exitCompIn(TemplateParser.CompInContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code CompIsNot}
+	 * labeled alternative in {@link TemplateParser#compOp}.
+	 * @param ctx the parse tree
+	 */
+	void enterCompIsNot(TemplateParser.CompIsNotContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code CompIsNot}
+	 * labeled alternative in {@link TemplateParser#compOp}.
+	 * @param ctx the parse tree
+	 */
+	void exitCompIsNot(TemplateParser.CompIsNotContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code CompIs}
+	 * labeled alternative in {@link TemplateParser#compOp}.
+	 * @param ctx the parse tree
+	 */
+	void enterCompIs(TemplateParser.CompIsContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code CompIs}
+	 * labeled alternative in {@link TemplateParser#compOp}.
+	 * @param ctx the parse tree
+	 */
+	void exitCompIs(TemplateParser.CompIsContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link TemplateParser#filterExpr}.
+	 * @param ctx the parse tree
+	 */
+	void enterFilterExpr(TemplateParser.FilterExprContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link TemplateParser#filterExpr}.
+	 * @param ctx the parse tree
+	 */
+	void exitFilterExpr(TemplateParser.FilterExprContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link TemplateParser#filterCall}.
+	 * @param ctx the parse tree
+	 */
+	void enterFilterCall(TemplateParser.FilterCallContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link TemplateParser#filterCall}.
+	 * @param ctx the parse tree
+	 */
+	void exitFilterCall(TemplateParser.FilterCallContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link TemplateParser#additive}.
+	 * @param ctx the parse tree
+	 */
+	void enterAdditive(TemplateParser.AdditiveContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link TemplateParser#additive}.
+	 * @param ctx the parse tree
+	 */
+	void exitAdditive(TemplateParser.AdditiveContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link TemplateParser#multiplicative}.
+	 * @param ctx the parse tree
+	 */
+	void enterMultiplicative(TemplateParser.MultiplicativeContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link TemplateParser#multiplicative}.
+	 * @param ctx the parse tree
+	 */
+	void exitMultiplicative(TemplateParser.MultiplicativeContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code UnaryMinus}
+	 * labeled alternative in {@link TemplateParser#unary}.
+	 * @param ctx the parse tree
+	 */
+	void enterUnaryMinus(TemplateParser.UnaryMinusContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code UnaryMinus}
+	 * labeled alternative in {@link TemplateParser#unary}.
+	 * @param ctx the parse tree
+	 */
+	void exitUnaryMinus(TemplateParser.UnaryMinusContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code UnaryPassthrough}
+	 * labeled alternative in {@link TemplateParser#unary}.
+	 * @param ctx the parse tree
+	 */
+	void enterUnaryPassthrough(TemplateParser.UnaryPassthroughContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code UnaryPassthrough}
+	 * labeled alternative in {@link TemplateParser#unary}.
+	 * @param ctx the parse tree
+	 */
+	void exitUnaryPassthrough(TemplateParser.UnaryPassthroughContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link TemplateParser#postfix}.
+	 * @param ctx the parse tree
+	 */
+	void enterPostfix(TemplateParser.PostfixContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link TemplateParser#postfix}.
+	 * @param ctx the parse tree
+	 */
+	void exitPostfix(TemplateParser.PostfixContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code TrailerAttr}
+	 * labeled alternative in {@link TemplateParser#trailer}.
+	 * @param ctx the parse tree
+	 */
+	void enterTrailerAttr(TemplateParser.TrailerAttrContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code TrailerAttr}
+	 * labeled alternative in {@link TemplateParser#trailer}.
+	 * @param ctx the parse tree
+	 */
+	void exitTrailerAttr(TemplateParser.TrailerAttrContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code TrailerIndex}
+	 * labeled alternative in {@link TemplateParser#trailer}.
+	 * @param ctx the parse tree
+	 */
+	void enterTrailerIndex(TemplateParser.TrailerIndexContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code TrailerIndex}
+	 * labeled alternative in {@link TemplateParser#trailer}.
+	 * @param ctx the parse tree
+	 */
+	void exitTrailerIndex(TemplateParser.TrailerIndexContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code TrailerCall}
+	 * labeled alternative in {@link TemplateParser#trailer}.
+	 * @param ctx the parse tree
+	 */
+	void enterTrailerCall(TemplateParser.TrailerCallContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code TrailerCall}
+	 * labeled alternative in {@link TemplateParser#trailer}.
+	 * @param ctx the parse tree
+	 */
+	void exitTrailerCall(TemplateParser.TrailerCallContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code SubscriptIndex}
+	 * labeled alternative in {@link TemplateParser#subscript}.
+	 * @param ctx the parse tree
+	 */
+	void enterSubscriptIndex(TemplateParser.SubscriptIndexContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code SubscriptIndex}
+	 * labeled alternative in {@link TemplateParser#subscript}.
+	 * @param ctx the parse tree
+	 */
+	void exitSubscriptIndex(TemplateParser.SubscriptIndexContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code SubscriptSlice}
+	 * labeled alternative in {@link TemplateParser#subscript}.
+	 * @param ctx the parse tree
+	 */
+	void enterSubscriptSlice(TemplateParser.SubscriptSliceContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code SubscriptSlice}
+	 * labeled alternative in {@link TemplateParser#subscript}.
+	 * @param ctx the parse tree
+	 */
+	void exitSubscriptSlice(TemplateParser.SubscriptSliceContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link TemplateParser#argList}.
+	 * @param ctx the parse tree
+	 */
+	void enterArgList(TemplateParser.ArgListContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link TemplateParser#argList}.
+	 * @param ctx the parse tree
+	 */
+	void exitArgList(TemplateParser.ArgListContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code ArgKeyword}
+	 * labeled alternative in {@link TemplateParser#argument}.
+	 * @param ctx the parse tree
+	 */
+	void enterArgKeyword(TemplateParser.ArgKeywordContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code ArgKeyword}
+	 * labeled alternative in {@link TemplateParser#argument}.
+	 * @param ctx the parse tree
+	 */
+	void exitArgKeyword(TemplateParser.ArgKeywordContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code ArgPositional}
+	 * labeled alternative in {@link TemplateParser#argument}.
+	 * @param ctx the parse tree
+	 */
+	void enterArgPositional(TemplateParser.ArgPositionalContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code ArgPositional}
+	 * labeled alternative in {@link TemplateParser#argument}.
+	 * @param ctx the parse tree
+	 */
+	void exitArgPositional(TemplateParser.ArgPositionalContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code PrimaryId}
+	 * labeled alternative in {@link TemplateParser#primary}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryId(TemplateParser.PrimaryIdContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code PrimaryId}
+	 * labeled alternative in {@link TemplateParser#primary}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryId(TemplateParser.PrimaryIdContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code PrimaryInt}
+	 * labeled alternative in {@link TemplateParser#primary}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryInt(TemplateParser.PrimaryIntContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code PrimaryInt}
+	 * labeled alternative in {@link TemplateParser#primary}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryInt(TemplateParser.PrimaryIntContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code PrimaryFloat}
+	 * labeled alternative in {@link TemplateParser#primary}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryFloat(TemplateParser.PrimaryFloatContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code PrimaryFloat}
+	 * labeled alternative in {@link TemplateParser#primary}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryFloat(TemplateParser.PrimaryFloatContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code PrimaryString}
+	 * labeled alternative in {@link TemplateParser#primary}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryString(TemplateParser.PrimaryStringContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code PrimaryString}
+	 * labeled alternative in {@link TemplateParser#primary}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryString(TemplateParser.PrimaryStringContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code PrimaryTrue}
+	 * labeled alternative in {@link TemplateParser#primary}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryTrue(TemplateParser.PrimaryTrueContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code PrimaryTrue}
+	 * labeled alternative in {@link TemplateParser#primary}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryTrue(TemplateParser.PrimaryTrueContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code PrimaryFalse}
+	 * labeled alternative in {@link TemplateParser#primary}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryFalse(TemplateParser.PrimaryFalseContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code PrimaryFalse}
+	 * labeled alternative in {@link TemplateParser#primary}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryFalse(TemplateParser.PrimaryFalseContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code PrimaryNone}
+	 * labeled alternative in {@link TemplateParser#primary}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryNone(TemplateParser.PrimaryNoneContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code PrimaryNone}
+	 * labeled alternative in {@link TemplateParser#primary}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryNone(TemplateParser.PrimaryNoneContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code PrimaryParen}
+	 * labeled alternative in {@link TemplateParser#primary}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryParen(TemplateParser.PrimaryParenContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code PrimaryParen}
+	 * labeled alternative in {@link TemplateParser#primary}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryParen(TemplateParser.PrimaryParenContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code PrimaryList}
+	 * labeled alternative in {@link TemplateParser#primary}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryList(TemplateParser.PrimaryListContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code PrimaryList}
+	 * labeled alternative in {@link TemplateParser#primary}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryList(TemplateParser.PrimaryListContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link TemplateParser#exprList}.
+	 * @param ctx the parse tree
+	 */
+	void enterExprList(TemplateParser.ExprListContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link TemplateParser#exprList}.
+	 * @param ctx the parse tree
+	 */
+	void exitExprList(TemplateParser.ExprListContext ctx);
 }

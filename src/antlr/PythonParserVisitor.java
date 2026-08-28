@@ -1,4 +1,4 @@
-// Generated from C:/Users/EVO.store/IdeaProjects/Flask_Jinja2_Compiler/src/antlr/PythonParser.g4 by ANTLR 4.13.2
+// Generated from src/antlr/PythonParser.g4 by ANTLR 4.13.2
 package antlr;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
@@ -233,12 +233,54 @@ public interface PythonParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitCompNotEq(PythonParser.CompNotEqContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code CompLE}
+	 * labeled alternative in {@link PythonParser#comp_op}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCompLE(PythonParser.CompLEContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code CompGE}
+	 * labeled alternative in {@link PythonParser#comp_op}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCompGE(PythonParser.CompGEContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code CompLT}
+	 * labeled alternative in {@link PythonParser#comp_op}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCompLT(PythonParser.CompLTContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code CompGT}
+	 * labeled alternative in {@link PythonParser#comp_op}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCompGT(PythonParser.CompGTContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code CompNotIn}
+	 * labeled alternative in {@link PythonParser#comp_op}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCompNotIn(PythonParser.CompNotInContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code CompIn}
 	 * labeled alternative in {@link PythonParser#comp_op}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitCompIn(PythonParser.CompInContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code CompIsNot}
+	 * labeled alternative in {@link PythonParser#comp_op}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCompIsNot(PythonParser.CompIsNotContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code CompIs}
 	 * labeled alternative in {@link PythonParser#comp_op}.
@@ -252,6 +294,18 @@ public interface PythonParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitArith_expr(PythonParser.Arith_exprContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link PythonParser#term}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitTerm(PythonParser.TermContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link PythonParser#factor}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFactor(PythonParser.FactorContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link PythonParser#atom_expr}.
 	 * @param ctx the parse tree

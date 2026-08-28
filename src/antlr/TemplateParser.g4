@@ -106,7 +106,7 @@ blockBodyItem
     ;
 
 jinjaFor
-    : JINJA_STMT_OPEN FOR ID IN expr JINJA_STMT_CLOSE
+    : JINJA_STMT_OPEN FOR ID (COMMA ID)* IN expr JINJA_STMT_CLOSE
       forBodyItem*
       JINJA_STMT_OPEN ENDFOR JINJA_STMT_CLOSE
     ;
@@ -141,7 +141,7 @@ jinjaElse
       elseBodyItem*
     ;
 jinjaWith
-    : JINJA_STMT_OPEN WITH expr JINJA_STMT_CLOSE
+    : JINJA_STMT_OPEN WITH (name=ID EQ)? value=expr? JINJA_STMT_CLOSE
       withBodyItem*
       JINJA_STMT_OPEN ENDWITH JINJA_STMT_CLOSE
     ;
@@ -158,41 +158,114 @@ jinjaPrint
     : JINJA_EXPR_OPEN expr JINJA_EXPR_CLOSE
     ;
 
+// ---------------------------------------------------------------------------
+// Expressions
+//
+// This used to be `expr : exprUnit+` — a flat token soup with no precedence,
+// which forced the AST builder to re-parse ctx.getText() with string splitting.
+// Because getText() concatenates tokens without whitespace, `user and admin`
+// arrived as the single identifier "userandadmin". The cascade below gives the
+// parser real precedence so the AST builder can walk the tree directly.
+// ---------------------------------------------------------------------------
+
 expr
-    : exprUnit+     #ExprSequence
+    : condExpr
     ;
 
-exprUnit
-    : atom          #ExprAtomUnit
-    | op            #ExprOpUnit
-    | punct         #ExprPunctUnit
+// Jinja inline conditional:  value if condition else fallback
+condExpr
+    : orExpr (IF orExpr (ELSE condExpr)?)?
     ;
 
-atom
-    : ID                        #AtomId
-    | INT                       #AtomInt
-    | STRING                    #AtomString
-    | LPAREN expr? RPAREN       #AtomParen
-    | LBRACK expr? RBRACK       #AtomBracket
+orExpr
+    : andExpr (OR andExpr)*
     ;
 
-op
-    : PLUS
-    | MINUS
-    | STAR
-    | SLASH
-    | GT
-    | LT
-    | GE
-    | LE
-    | EQEQ
-    | NE
-    | PIPE
-    | EQ
+andExpr
+    : notExpr (AND notExpr)*
     ;
 
-punct
-    : DOT
-    | COMMA
-    | COLON
+notExpr
+    : NOT notExpr   #NotUnary
+    | comparison    #NotPassthrough
+    ;
+
+comparison
+    : filterExpr (compOp filterExpr)*
+    ;
+
+compOp
+    : EQEQ      #CompEq
+    | NE        #CompNotEq
+    | LE        #CompLe
+    | GE        #CompGe
+    | LT        #CompLt
+    | GT        #CompGt
+    | NOT IN    #CompNotIn
+    | IN        #CompIn
+    | IS NOT    #CompIsNot
+    | IS        #CompIs
+    ;
+
+// Jinja filters:  value | length  |  value | default('n/a')
+filterExpr
+    : additive (PIPE filterCall)*
+    ;
+
+filterCall
+    : ID (LPAREN argList? RPAREN)?
+    ;
+
+additive
+    : multiplicative ((PLUS | MINUS) multiplicative)*
+    ;
+
+multiplicative
+    : unary ((STAR | SLASH | PERCENT) unary)*
+    ;
+
+unary
+    : MINUS unary   #UnaryMinus
+    | postfix       #UnaryPassthrough
+    ;
+
+postfix
+    : primary trailer*
+    ;
+
+trailer
+    : DOT ID                    #TrailerAttr
+    | LBRACK subscript RBRACK   #TrailerIndex
+    | LPAREN argList? RPAREN    #TrailerCall
+    ;
+
+// Supports both x[0] and the slice forms x[:100], x[1:5], x[1:]
+subscript
+    : expr                #SubscriptIndex
+    | start=expr? COLON stop=expr?  #SubscriptSlice
+    ;
+
+argList
+    : argument (COMMA argument)* COMMA?
+    ;
+
+argument
+    : ID EQ expr   #ArgKeyword
+    | expr         #ArgPositional
+    ;
+
+primary
+    : ID                        #PrimaryId
+    | INT                       #PrimaryInt
+    | FLOAT                     #PrimaryFloat
+    | STRING                    #PrimaryString
+    | TRUE                      #PrimaryTrue
+    | FALSE                     #PrimaryFalse
+    | NONE                      #PrimaryNone
+    | LPAREN expr RPAREN        #PrimaryParen
+    | LBRACK exprList? RBRACK   #PrimaryList
+    ;
+
+exprList
+    : expr (COMMA expr)* COMMA?
     ;

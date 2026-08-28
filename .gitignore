@@ -1,3 +1,11 @@
+### This project ###
+# Compiler output: the runnable Flask app the code generator emits.
+generated/
+# Scratch file the build script writes for javac's argument list.
+sources.txt
+srcs.txt
+run.txt
+
 ### IntelliJ IDEA ###
 out/
 !**/src/main/**/out/

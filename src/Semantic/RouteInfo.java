@@ -1,0 +1,70 @@
+package Semantic;
+
+import AST.python.AstNode;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/**
+ * A single Flask route, flattened out of the Python AST into the facts the
+ * analyser and the data generator both need: which URL it serves, which view
+ * function handles it, which template it renders, and what context it passes.
+ */
+public class RouteInfo {
+
+    /** Matches Flask URL parameters such as {@code <int:product_id>} or {@code <name>}. */
+    private static final Pattern URL_PARAM = Pattern.compile("<(?:([a-zA-Z_]+):)?([a-zA-Z_][a-zA-Z0-9_]*)>");
+
+    private final String urlPath;
+    private final String functionName;
+    private final List<String> functionParams = new ArrayList<>();
+    private final int line;
+
+    private String renderedTemplate;
+    private int renderLine = -1;
+
+    /** Context key to the Python expression passed for it in render_template(...). */
+    private final Map<String, AstNode> context = new LinkedHashMap<>();
+
+    public RouteInfo(String urlPath, String functionName, List<String> functionParams, int line) {
+        this.urlPath = urlPath;
+        this.functionName = functionName;
+        if (functionParams != null) this.functionParams.addAll(functionParams);
+        this.line = line;
+    }
+
+    public String getUrlPath() { return urlPath; }
+    public String getFunctionName() { return functionName; }
+    public List<String> getFunctionParams() { return Collections.unmodifiableList(functionParams); }
+    public int getLine() { return line; }
+
+    public String getRenderedTemplate() { return renderedTemplate; }
+    public int getRenderLine() { return renderLine; }
+
+    public void setRendered(String templateName, int atLine) {
+        this.renderedTemplate = templateName;
+        this.renderLine = atLine;
+    }
+
+    public void putContext(String key, AstNode value) {
+        context.put(key, value);
+    }
+
+    public Map<String, AstNode> getContext() {
+        return Collections.unmodifiableMap(context);
+    }
+
+    /** The parameter names declared in the URL pattern, in order. */
+    public List<String> getUrlParams() {
+        List<String> out = new ArrayList<>();
+        if (urlPath == null) return out;
+        Matcher m = URL_PARAM.matcher(urlPath);
+        while (m.find()) out.add(m.group(2));
+        return out;
+    }
+}

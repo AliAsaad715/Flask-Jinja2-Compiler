@@ -13,7 +13,7 @@ public class ExtendsNode extends JinjaNode {
     }
 
     @Override
-    protected String details() {
+    public String describe() {
         return "{template=" + templateName + "}";
     }
 }

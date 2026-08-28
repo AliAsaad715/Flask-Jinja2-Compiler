@@ -13,7 +13,7 @@ public class LiteralExpr extends ExprNode {
     }
 
     @Override
-    protected String details() {
+    public String describe() {
         return "{value=" + literal + "}";
     }
 }

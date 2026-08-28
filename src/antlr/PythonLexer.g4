@@ -118,11 +118,21 @@ DOT: '.';
 COMMA: ',';
 COLON: ':';
 
+// NOTE: two-character operators MUST be declared before their one-character
+// prefixes, otherwise '<=' would be lexed as LT followed by EQUAL.
 EQEQ: '==';
 NOTEQ: '!=';
+LE: '<=';
+GE: '>=';
+LT: '<';
+GT: '>';
 EQUAL: '=';
 
 PLUS: '+';
+MINUS: '-';
+STAR: '*';
+SLASH: '/';
+PERCENT: '%';
 
 OPEN_B: '(' {opened++;};
 CLOSE_B: ')' { if (opened > 0) opened--; };
@@ -134,11 +144,14 @@ LBRACE: '{' {opened++;};
 RBRACE: '}' { if (opened > 0) opened--; };
 
 
-FLOAT_VALUE: '-'? [0-9]+ '.' [0-9]+;
+// A leading '-' is NOT part of a numeric literal: it is the MINUS token and is
+// handled by the parser's `factor` rule. Otherwise `x-1` would lex as
+// ID INT_VALUE('-1') instead of ID MINUS INT_VALUE('1').
+FLOAT_VALUE: [0-9]+ '.' [0-9]+;
 
 INT_VALUE
     : '0'
-    | '-'? [1-9] [0-9]*
+    | [1-9] [0-9]*
     ;
 
 

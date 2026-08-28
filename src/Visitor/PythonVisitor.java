@@ -5,6 +5,7 @@ import antlr.PythonParser;
 import antlr.PythonParserBaseVisitor;
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
 import Symbol.SymbolTablePython;
 
 import java.util.ArrayList;
@@ -85,7 +86,7 @@ public class PythonVisitor extends PythonParserBaseVisitor<AstNode> {
 
     @Override
     public AstNode visitImportFrom(PythonParser.ImportFromContext ctx) {
-        String raw = textOf(ctx);
+        String raw = rawTextOf(ctx);
         List<String> names = new ArrayList<>();
         int line = lineOf(ctx);
 
@@ -100,7 +101,7 @@ public class PythonVisitor extends PythonParserBaseVisitor<AstNode> {
 
     @Override
     public AstNode visitImportDirect(PythonParser.ImportDirectContext ctx) {
-        String raw = textOf(ctx);
+        String raw = rawTextOf(ctx);
         List<String> names = new ArrayList<>();
         int line = lineOf(ctx);
 
@@ -131,23 +132,41 @@ public class PythonVisitor extends PythonParserBaseVisitor<AstNode> {
 
     @Override
     public AstNode visitDecorated_funcdef(PythonParser.Decorated_funcdefContext ctx) {
-        DecoratedFunctionNode node = new DecoratedFunctionNode(lineOf(ctx));
-
+        List<DecoratorNode> decorators = new ArrayList<>();
         for (PythonParser.DecoratorContext dec : ctx.decorator()) {
             AstNode d = visit(dec);
-            if (d != null) node.addDecorator((DecoratorNode) d);
+            if (d instanceof DecoratorNode) decorators.add((DecoratorNode) d);
         }
 
         FunctionNode fn = (FunctionNode) visit(ctx.funcdef());
-        node.setFunction(fn);
 
-        RouteNode route = new RouteNode(lineOf(ctx));
-        if (!node.decorators.isEmpty()) {
-            route.setDecorator(node.decorators.getFirst());
+        // The common Flask case - exactly one @x.route(...) - keeps the compact Route shape.
+        if (decorators.size() == 1 && isRouteDecorator(decorators.get(0))) {
+            RouteNode route = new RouteNode(lineOf(ctx));
+            route.setDecorator(decorators.get(0));
+            route.setFunction(fn);
+            return route;
         }
-        route.setFunction(fn);
 
-        return route;
+        // Otherwise every decorator is kept. Stacked routes each become their own
+        // RouteNode; a decorator that is not a route (e.g. @app.errorhandler(404))
+        // stays a plain DecoratorNode instead of being mis-classified as a route.
+        DecoratedFunctionNode node = new DecoratedFunctionNode(lineOf(ctx));
+        for (DecoratorNode d : decorators) {
+            if (isRouteDecorator(d)) {
+                RouteNode route = new RouteNode(d.line);
+                route.setDecorator(d);
+                node.addDecorator(d, route);
+            } else {
+                node.addDecorator(d);
+            }
+        }
+        node.setFunction(fn);
+        return node;
+    }
+
+    private boolean isRouteDecorator(DecoratorNode d) {
+        return d != null && "route".equals(d.methodName);
     }
 
     @Override
@@ -239,7 +258,9 @@ public class PythonVisitor extends PythonParserBaseVisitor<AstNode> {
         int suiteIndex = 1;
         for (int i = 1; i < ctx.expr().size(); i++) {
             BlockNode b = (BlockNode) visit(ctx.suite(suiteIndex++));
-            root.addElif(new IfNode(lineOf(ctx), visit(ctx.expr(i)), b));
+            // The elif has its own line - ctx would report the parent if's line.
+            int elifLine = ctx.ELIF(i - 1).getSymbol().getLine();
+            root.addElif(new IfNode(elifLine, visit(ctx.expr(i)), b));
         }
 
         if (ctx.ELSE() != null) {
@@ -293,20 +314,40 @@ public class PythonVisitor extends PythonParserBaseVisitor<AstNode> {
     public AstNode visitComparison(PythonParser.ComparisonContext ctx) {
         AstNode left = visit(ctx.arith_expr(0));
         for (int i = 1; i < ctx.arith_expr().size(); i++) {
-            String op = ctx.comp_op(i - 1).getText();
+            PythonParser.Comp_opContext opCtx = ctx.comp_op(i - 1);
             AstNode right = visit(ctx.arith_expr(i));
-            left = new BinaryOpNode(lineOf(ctx), op, left, right);
+            left = new BinaryOpNode(lineOf(opCtx), compOpText(opCtx), left, right);
         }
         return left;
     }
 
     @Override
     public AstNode visitArith_expr(PythonParser.Arith_exprContext ctx) {
-        AstNode left = visit(ctx.atom_expr(0));
-        for (int i = 1; i < ctx.atom_expr().size(); i++) {
-            left = new BinaryOpNode(lineOf(ctx), "+", left, visit(ctx.atom_expr(i)));
+        AstNode left = visit(ctx.term(0));
+        for (int i = 1; i < ctx.term().size(); i++) {
+            Token op = ctx.op.get(i - 1);
+            left = new BinaryOpNode(op.getLine(), op.getText(), left, visit(ctx.term(i)));
         }
         return left;
+    }
+
+    @Override
+    public AstNode visitTerm(PythonParser.TermContext ctx) {
+        AstNode left = visit(ctx.factor(0));
+        for (int i = 1; i < ctx.factor().size(); i++) {
+            Token op = ctx.op.get(i - 1);
+            left = new BinaryOpNode(op.getLine(), op.getText(), left, visit(ctx.factor(i)));
+        }
+        return left;
+    }
+
+    @Override
+    public AstNode visitFactor(PythonParser.FactorContext ctx) {
+        if (ctx.MINUS() != null) {
+            Token op = ctx.MINUS().getSymbol();
+            return new UnaryOpNode(op.getLine(), op.getText(), visit(ctx.factor()));
+        }
+        return visit(ctx.atom_expr());
     }
 
     @Override
@@ -465,12 +506,30 @@ public class PythonVisitor extends PythonParserBaseVisitor<AstNode> {
         return ctx.getText();
     }
 
+    /**
+     * Source text of a statement without the trailing NEWLINE that {@code end_stmt}
+     * pulls in - that newline would otherwise be stored and printed as part of a symbol.
+     */
+    private String rawTextOf(ParserRuleContext ctx) {
+        return textOf(ctx).stripTrailing();
+    }
+
     private String stripQuotes(String s) {
         if (s == null || s.length() < 2) return s;
         char a = s.charAt(0);
         char b = s.charAt(s.length() - 1);
         if ((a == '\'' && b == '\'') || (a == '"' && b == '"')) return s.substring(1, s.length() - 1);
         return s;
+    }
+
+    /**
+     * Operator text for a comparison. getText() concatenates the raw tokens, so the
+     * two-word Python operators have to be re-spaced by hand.
+     */
+    private String compOpText(PythonParser.Comp_opContext ctx) {
+        if (ctx instanceof PythonParser.CompNotInContext) return "not in";
+        if (ctx instanceof PythonParser.CompIsNotContext) return "is not";
+        return ctx.getText();
     }
 
     private String[] splitLastDot(String dotted) {
