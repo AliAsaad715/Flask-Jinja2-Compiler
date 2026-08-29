@@ -57,7 +57,7 @@ def add_product():
             image_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         
         new_product = {
-            'id': len(products) + 1,
+            'id': max((p['id'] for p in products), default=0) + 1,
             'name': name,
             'price': price,
             'image': filename,
