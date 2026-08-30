@@ -18,11 +18,6 @@ public abstract class AstNode {
         if (child != null) children.add(child);
     }
 
-    /**
-     * The node's own detail line — the tag name, the operator, the literal value.
-     * Subclasses override this and nothing else; both printers below read it, so
-     * a node described once prints correctly in every format.
-     */
     public String describe() { return ""; }
 
     public String pretty() {
@@ -92,7 +87,6 @@ public abstract class AstNode {
         return sb.toString();
     }
 
-    /** One node and its immediate children only, for inspecting a single node. */
     public final String printNode() {
         StringBuilder sb = new StringBuilder();
         sb.append(header()).append("\n");

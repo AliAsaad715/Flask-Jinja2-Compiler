@@ -6,7 +6,6 @@ import AST.css.CssRuleNode;
 
 import java.util.List;
 
-/** Turns the CSS AST back into a stylesheet: one declaration per line, a blank line between rules. */
 final class CssEmitter {
 
     private static final String INDENT = "  ";

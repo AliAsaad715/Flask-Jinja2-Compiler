@@ -10,24 +10,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Flattens the Python AST into the facts that later stages need: the module's
- * top-level data, every view function, and every route with the template it
- * renders and the context it passes.
- *
- * <p>Building this once means the semantic analyser and the data generator work
- * from the same view of the application instead of each re-walking the tree.
- */
 public class FlaskModel {
 
-    /** Top-level `name = value` assignments — this is where the data array lives. */
     private final Map<String, AstNode> globals = new LinkedHashMap<>();
     private final Map<String, Integer> globalLines = new LinkedHashMap<>();
 
     private final List<RouteInfo> routes = new ArrayList<>();
     private final List<FunctionNode> functions = new ArrayList<>();
 
-    /** Call sites of locally defined functions, for the argument-count check. */
     private final List<CallSite> callSites = new ArrayList<>();
 
     public static class CallSite {
@@ -49,7 +39,6 @@ public class FlaskModel {
         for (AstNode child : program.getChildren()) {
             if (child instanceof AssignNode) {
                 AssignNode a = (AssignNode) child;
-                // Only simple targets — `app.config['X'] = ...` is not a data binding.
                 if (a.target != null && a.target.matches("[A-Za-z_][A-Za-z0-9_]*")) {
                     model.globals.put(a.target, firstChild(a));
                     model.globalLines.put(a.target, a.line);
@@ -62,8 +51,6 @@ public class FlaskModel {
         model.collectFunctionsAndCalls(program);
         return model;
     }
-
-    // ------------------------------------------------------------------ routes
 
     private void collectRoutes(AstNode node, Set<DecoratorNode> claimed) {
         if (node == null) return;
@@ -102,7 +89,6 @@ public class FlaskModel {
         routes.add(info);
     }
 
-    /** Locates the render_template(...) call inside a view function's body. */
     private void findRenderTemplate(AstNode node, RouteInfo info) {
         if (node == null || info.getRenderedTemplate() != null) return;
 
@@ -123,8 +109,6 @@ public class FlaskModel {
         for (AstNode c : node.getChildren()) findRenderTemplate(c, info);
     }
 
-    // -------------------------------------------------------- functions, calls
-
     private void collectFunctionsAndCalls(AstNode node) {
         if (node == null) return;
 
@@ -144,7 +128,6 @@ public class FlaskModel {
         return Math.max(0, call.getChildren().size() - 1);
     }
 
-    /** The simple name being called, or null when the callee is not a bare identifier. */
     public static String calleeName(AstNode call) {
         List<AstNode> children = call.getChildren();
         if (children.isEmpty()) return null;
@@ -156,15 +139,12 @@ public class FlaskModel {
         return n.getChildren().isEmpty() ? null : n.getChildren().get(0);
     }
 
-    // ----------------------------------------------------------------- getters
-
     public Map<String, AstNode> getGlobals() { return Collections.unmodifiableMap(globals); }
     public int globalLine(String name) { return globalLines.getOrDefault(name, -1); }
     public List<RouteInfo> getRoutes() { return Collections.unmodifiableList(routes); }
     public List<FunctionNode> getFunctions() { return Collections.unmodifiableList(functions); }
     public List<CallSite> getCallSites() { return Collections.unmodifiableList(callSites); }
 
-    /** The route that renders the given template file, or null if none does. */
     public RouteInfo routeRendering(String templateName) {
         for (RouteInfo r : routes) {
             if (templateName.equals(r.getRenderedTemplate())) return r;

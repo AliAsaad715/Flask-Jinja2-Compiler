@@ -74,7 +74,6 @@ public class PythonVisitor extends PythonParserBaseVisitor<AstNode> {
         return null;
     }
 
-
     @Override
     public AstNode visitReturn_stmt(PythonParser.Return_stmtContext ctx) {
         ReturnNode r = new ReturnNode(lineOf(ctx));
@@ -113,7 +112,6 @@ public class PythonVisitor extends PythonParserBaseVisitor<AstNode> {
         return new ImportNode(line, "import", null, names, raw);
     }
 
-
     @Override
     public AstNode visitAssign_stmt(PythonParser.Assign_stmtContext ctx) {
         int line = lineOf(ctx);
@@ -140,7 +138,6 @@ public class PythonVisitor extends PythonParserBaseVisitor<AstNode> {
 
         FunctionNode fn = (FunctionNode) visit(ctx.funcdef());
 
-        // The common Flask case - exactly one @x.route(...) - keeps the compact Route shape.
         if (decorators.size() == 1 && isRouteDecorator(decorators.get(0))) {
             RouteNode route = new RouteNode(lineOf(ctx));
             route.setDecorator(decorators.get(0));
@@ -148,9 +145,6 @@ public class PythonVisitor extends PythonParserBaseVisitor<AstNode> {
             return route;
         }
 
-        // Otherwise every decorator is kept. Stacked routes each become their own
-        // RouteNode; a decorator that is not a route (e.g. @app.errorhandler(404))
-        // stays a plain DecoratorNode instead of being mis-classified as a route.
         DecoratedFunctionNode node = new DecoratedFunctionNode(lineOf(ctx));
         for (DecoratorNode d : decorators) {
             if (isRouteDecorator(d)) {
@@ -258,7 +252,6 @@ public class PythonVisitor extends PythonParserBaseVisitor<AstNode> {
         int suiteIndex = 1;
         for (int i = 1; i < ctx.expr().size(); i++) {
             BlockNode b = (BlockNode) visit(ctx.suite(suiteIndex++));
-            // The elif has its own line - ctx would report the parent if's line.
             int elifLine = ctx.ELIF(i - 1).getSymbol().getLine();
             root.addElif(new IfNode(elifLine, visit(ctx.expr(i)), b));
         }
@@ -386,7 +379,6 @@ public class PythonVisitor extends PythonParserBaseVisitor<AstNode> {
         return current;
     }
 
-
     @Override
     public AstNode visitArgKeyword(PythonParser.ArgKeywordContext ctx) {
         String name = ctx.ID().getText();
@@ -455,7 +447,6 @@ public class PythonVisitor extends PythonParserBaseVisitor<AstNode> {
         return null;
     }
 
-
     @Override
     public AstNode visitList_literal(PythonParser.List_literalContext ctx) {
         ListNode n = new ListNode(lineOf(ctx));
@@ -506,10 +497,6 @@ public class PythonVisitor extends PythonParserBaseVisitor<AstNode> {
         return ctx.getText();
     }
 
-    /**
-     * Source text of a statement without the trailing NEWLINE that {@code end_stmt}
-     * pulls in - that newline would otherwise be stored and printed as part of a symbol.
-     */
     private String rawTextOf(ParserRuleContext ctx) {
         return textOf(ctx).stripTrailing();
     }
@@ -522,10 +509,6 @@ public class PythonVisitor extends PythonParserBaseVisitor<AstNode> {
         return s;
     }
 
-    /**
-     * Operator text for a comparison. getText() concatenates the raw tokens, so the
-     * two-word Python operators have to be re-spaced by hand.
-     */
     private String compOpText(PythonParser.Comp_opContext ctx) {
         if (ctx instanceof PythonParser.CompNotInContext) return "not in";
         if (ctx instanceof PythonParser.CompIsNotContext) return "is not";

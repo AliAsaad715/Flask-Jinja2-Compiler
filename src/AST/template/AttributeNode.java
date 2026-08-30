@@ -24,11 +24,6 @@ public class AttributeNode extends AstNode {
         return name;
     }
 
-    /**
-     * Whether the source wrote {@code name="..."} at all. Distinguishes an empty
-     * value such as {@code alt=""} from a valueless attribute such as
-     * {@code required}, which have the same (empty) part list.
-     */
     public boolean hasValue() {
         return hasValue;
     }

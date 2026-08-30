@@ -12,18 +12,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Builds the Jinja2/HTML abstract syntax tree from the parse tree.
- *
- * <p>Expressions are built by walking the parse tree directly. An earlier version
- * flattened each expression back to text with {@code ctx.getText()} and re-parsed
- * it with string splitting; because {@code getText()} drops whitespace, word
- * operators fused into their operands and {@code user and admin} became a single
- * identifier named {@code userandadmin}.
- */
 public class TemplateAstBuilder extends TemplateParserBaseVisitor<AstNode> {
-
-    // ---------------------------------------------------------------- template
 
     @Override
     public AstNode visitTemplate(TemplateParser.TemplateContext ctx) {
@@ -79,8 +68,6 @@ public class TemplateAstBuilder extends TemplateParserBaseVisitor<AstNode> {
     public AstNode visitPlainText(TemplateParser.PlainTextContext ctx) {
         return new TextNode(lineOf(ctx.getStart()), ctx.TEXT().getText());
     }
-
-    // -------------------------------------------------------------------- html
 
     @Override
     public AstNode visitHtmlNormalElement(TemplateParser.HtmlNormalElementContext ctx) {
@@ -153,8 +140,6 @@ public class TemplateAstBuilder extends TemplateParserBaseVisitor<AstNode> {
         ExprNode expr = buildExpr(ctx.jinjaPrint().expr());
         return new AttributeExprPartNode(lineOf(ctx.getStart()), expr);
     }
-
-    // ------------------------------------------------------------------- jinja
 
     @Override
     public AstNode visitJinjaPrint(TemplateParser.JinjaPrintContext ctx) {
@@ -232,17 +217,6 @@ public class TemplateAstBuilder extends TemplateParserBaseVisitor<AstNode> {
         }
         return w;
     }
-
-    // ------------------------------------------------------------- expressions
-    //
-    // One method per precedence level, mirroring the grammar cascade. Each
-    // returns the operand unchanged when no operator is present, so a bare
-    // `product.name` does not accumulate wrapper nodes on the way down.
-
-    // Every builder tolerates a missing or unlabelled context. When the parser
-    // recovers from a syntax error it hands back a bare base context rather than
-    // one of the labelled subtypes, and a blind cast would turn a reported syntax
-    // error into a ClassCastException.
 
     private ExprNode buildExpr(TemplateParser.ExprContext ctx) {
         if (ctx == null) return null;
@@ -351,11 +325,6 @@ public class TemplateAstBuilder extends TemplateParserBaseVisitor<AstNode> {
         return left;
     }
 
-    /**
-     * Recovers the operator token sitting between two operands. The grammar keeps
-     * repeated binary operators in a flat list, so the operator is the terminal
-     * child positioned between them.
-     */
     private String operatorBetween(ParserRuleContext parent, ParserRuleContext left, ParserRuleContext right) {
         boolean seenLeft = false;
         for (int i = 0; i < parent.getChildCount(); i++) {
@@ -468,8 +437,6 @@ public class TemplateAstBuilder extends TemplateParserBaseVisitor<AstNode> {
         }
         return out;
     }
-
-    // ------------------------------------------------------------------ helpers
 
     private String unquote(String s) {
         String t = s == null ? "" : s.trim();

@@ -1,6 +1,5 @@
 package AST.template.expr;
 
-/** Jinja's inline conditional: `value if condition else fallback`. */
 public class CondExpr extends ExprNode {
     private final ExprNode thenExpr;
     private final ExprNode condition;

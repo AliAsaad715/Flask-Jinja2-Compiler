@@ -80,7 +80,6 @@ public class SymbolTablePython {
         Scope scope = currentScope();
         SymbolEntry existing = scope.symbols.get(name);
         if (existing != null) {
-            // diagnostics.add("line " + line + ": symbol '" + name + "' already defined...");
             return existing;
         }
 

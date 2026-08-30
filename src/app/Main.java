@@ -31,13 +31,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Compiler driver.
- *
- * <p>Runs the full pipeline over a Flask project: lexing and parsing for all four
- * languages, AST construction, symbol tables, the data generator that links the
- * Python tree to the Jinja tree, semantic analysis, and code generation.
- */
 public class Main {
 
     private static final String[] DEFAULT_SOURCES = {
@@ -50,12 +43,10 @@ public class Main {
             "Tests/style_css.txt",
     };
 
-    /** Where the generated, runnable Flask project is written. */
     private static final String OUTPUT_DIR = "generated";
 
     private enum Kind { PYTHON, TEMPLATE, CSS }
 
-    /** One parsed source file. */
     private static class Unit {
         String path;
         String logicalName;
@@ -66,8 +57,6 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        // The sources carry Arabic product names; without this the Windows console
-        // codepage turns every non-ASCII character into a question mark.
         System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out), true, StandardCharsets.UTF_8));
 
         boolean listNodes = false;
@@ -81,7 +70,6 @@ public class Main {
         List<Unit> units = new ArrayList<>();
         int syntaxErrors = 0;
 
-        // ---------------------------------------------------------- 1. front end
         System.out.println("=== 1. LEXICAL & SYNTAX ANALYSIS ===\n");
         for (String path : paths) {
             Unit u = parse(path);
@@ -97,7 +85,6 @@ public class Main {
         }
         System.out.println("\n  " + units.size() + " file(s), " + syntaxErrors + " syntax error(s)");
 
-        // -------------------------------------------------- gather the two trees
         ProgramNode program = null;
         String pythonSource = "app.py";
         Map<String, TemplateFileNode> templates = new LinkedHashMap<>();
@@ -117,7 +104,6 @@ public class Main {
             }
         }
 
-        // ------------------------------------------------------- 2. the generator
         FlaskModel model = FlaskModel.from(program);
 
         System.out.println("\n=== 2. GENERATOR — passing data from the Python tree into the Jinja tree ===\n");
@@ -132,7 +118,6 @@ public class Main {
         System.out.println("\n  " + transferred + " value(s) transferred into "
                 + templates.size() + " template tree(s)");
 
-        // ------------------------------------------------- 3. semantic analysis
         System.out.println("\n=== 3. SEMANTIC ANALYSIS ===\n");
         SemanticAnalyzer analyzer = new SemanticAnalyzer(model, pythonSource);
         for (Map.Entry<String, TemplateFileNode> e : templates.entrySet()) {
@@ -151,7 +136,6 @@ public class Main {
         }
         System.out.println("\n  " + hard + " error(s), " + (semantic.size() - hard) + " warning(s)");
 
-        // ------------------------------------------------------------- 4. trees
         System.out.println("\n=== 4. ABSTRACT SYNTAX TREES ===");
         for (Unit u : units) {
             if (u.ast == null) continue;
@@ -163,7 +147,6 @@ public class Main {
             }
         }
 
-        // -------------------------------------------------------- 5. code generation
         System.out.println("=== 5. CODE GENERATION ===\n");
         if (hard > 0) {
             System.out.println("  Skipped: fix the " + hard + " semantic error(s) first.\n");
@@ -190,7 +173,6 @@ public class Main {
             }
         }
 
-        // Requirement 7 also asks for a per-node printer, not only a whole-tree one.
         if (listNodes) {
             System.out.println("=== 5. NODE-BY-NODE LISTING ===\n");
             for (Unit u : units) {
@@ -207,14 +189,11 @@ public class Main {
         System.out.println("  data transferred: " + transferred + " value(s)");
     }
 
-    /** Prints every node in the tree with its immediate children. */
     private static void printEveryNode(AstNode node) {
         if (node == null) return;
         System.out.println(node.printNode());
         for (AstNode c : node.getChildren()) printEveryNode(c);
     }
-
-    // ------------------------------------------------------------------ parsing
 
     private static Unit parse(String path) {
         String text;
@@ -238,8 +217,6 @@ public class Main {
                 case CSS:      u.ast = parseCss(text, u.errors); break;
             }
         } catch (RuntimeException e) {
-            // A lexer that throws (for example on inconsistent indentation) must not
-            // take down the whole run — record it and carry on with the other files.
             u.errors.syntaxError(null, null, 0, 0, e.getMessage(), null);
         }
         return u;
@@ -289,15 +266,6 @@ public class Main {
         return new CssAstBuilder().visit(parser.stylesheet());
     }
 
-    // ------------------------------------------------------- file classification
-
-    /**
-     * Decides which language a file is written in.
-     *
-     * <p>Extension first, then a content probe. An earlier version returned CSS for
-     * any path merely containing the letters "css", so a template named
-     * css_layout.html was sent to the CSS parser.
-     */
     private static Kind classify(String path, String text) {
         String name = Path.of(path).getFileName().toString().toLowerCase();
 
@@ -309,12 +277,6 @@ public class Main {
         return sniff(text);
     }
 
-    /**
-     * Guesses the language of a file whose name gives nothing away, by scoring
-     * markers that are characteristic of each language rather than single
-     * characters. Testing only for '&lt;' used to send `if x &lt;= 2:` to the template
-     * parser.
-     */
     private static Kind sniff(String text) {
         int python = 0, template = 0, css = 0;
 
@@ -336,19 +298,12 @@ public class Main {
         return Kind.PYTHON;
     }
 
-    /** An HTML-looking tag such as &lt;div ...&gt; or &lt;/div&gt;. */
     private static final java.util.regex.Pattern TAG_PATTERN =
             java.util.regex.Pattern.compile("</?[a-zA-Z][a-zA-Z0-9]*[\\s/>]");
 
-    /** A CSS rule: a selector, a brace, then `property: value`. */
     private static final java.util.regex.Pattern CSS_RULE_PATTERN =
             java.util.regex.Pattern.compile("[.#]?[-\\w]+\\s*\\{[^}]*[-\\w]+\\s*:[^}]+}", java.util.regex.Pattern.DOTALL);
 
-    /**
-     * The name the project refers to a file by. The fixtures are stored as
-     * products_html.txt but the application renders 'products.html', so the two
-     * halves need a shared name to be linked.
-     */
     private static String logicalName(String path) {
         String name = Path.of(path).getFileName().toString();
         if (name.toLowerCase().endsWith(".txt")) {
