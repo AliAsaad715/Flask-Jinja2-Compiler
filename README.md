@@ -21,7 +21,8 @@ generated from them. Use `.\build.ps1 -Clean` to force a full rebuild.
 
 `watch.ps1` watches the fixtures in `Tests/` and re-runs the compiler each time
 one is saved (debounced, so one save means one compile). Extra arguments are
-passed through to `run.ps1`, and `-Path` watches a different directory. Watch a
+passed through to `run.ps1`. `-Path` watches a different directory and compiles
+the fixtures found under it when no source arguments are given. Watch a
 fixtures directory, not the repo root - writes to `generated/` and `out/` would
 re-trigger the watcher (the script warns when it spots them).
 
