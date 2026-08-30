@@ -6,7 +6,7 @@
         <PerGrammarGenerationSettings>
           <option name="fileName" value="$PROJECT_DIR$/src/antlr/PythonLexer.g4" />
           <option name="autoGen" value="true" />
-          <option name="outputDir" value="C:\Users\EVO.store\IdeaProjects\Flask_Jinja2_Compiler\src" />
+          <option name="outputDir" value="$PROJECT_DIR$/src" />
           <option name="libDir" value="" />
           <option name="encoding" value="" />
           <option name="pkg" value="" />
@@ -16,7 +16,7 @@
         <PerGrammarGenerationSettings>
           <option name="fileName" value="$PROJECT_DIR$/src/antlr/PythonParser.g4" />
           <option name="autoGen" value="true" />
-          <option name="outputDir" value="C:\Users\EVO.store\IdeaProjects\Flask_Jinja2_Compiler\src" />
+          <option name="outputDir" value="$PROJECT_DIR$/src" />
           <option name="libDir" value="" />
           <option name="encoding" value="" />
           <option name="pkg" value="" />
@@ -26,7 +26,7 @@
         <PerGrammarGenerationSettings>
           <option name="fileName" value="$PROJECT_DIR$/src/antlr/TemplateLexer.g4" />
           <option name="autoGen" value="true" />
-          <option name="outputDir" value="C:\Users\noureddine\IdeaProjects\Flask-Jinja2-Compiler\src" />
+          <option name="outputDir" value="$PROJECT_DIR$/src" />
           <option name="libDir" value="" />
           <option name="encoding" value="" />
           <option name="pkg" value="" />
@@ -36,7 +36,7 @@
         <PerGrammarGenerationSettings>
           <option name="fileName" value="$PROJECT_DIR$/src/antlr/TemplateParser.g4" />
           <option name="autoGen" value="true" />
-          <option name="outputDir" value="C:\Users\noureddine\IdeaProjects\Flask-Jinja2-Compiler\src" />
+          <option name="outputDir" value="$PROJECT_DIR$/src" />
           <option name="libDir" value="" />
           <option name="encoding" value="" />
           <option name="pkg" value="" />
@@ -46,7 +46,7 @@
         <PerGrammarGenerationSettings>
           <option name="fileName" value="$PROJECT_DIR$/src/antlr/CssLexer.g4" />
           <option name="autoGen" value="true" />
-          <option name="outputDir" value="C:\Users\noureddine\IdeaProjects\Flask-Jinja2-Compiler\src" />
+          <option name="outputDir" value="$PROJECT_DIR$/src" />
           <option name="libDir" value="" />
           <option name="encoding" value="" />
           <option name="pkg" value="" />
@@ -56,7 +56,7 @@
         <PerGrammarGenerationSettings>
           <option name="fileName" value="$PROJECT_DIR$/src/antlr/CssParser.g4" />
           <option name="autoGen" value="true" />
-          <option name="outputDir" value="C:\Users\noureddine\IdeaProjects\Flask-Jinja2-Compiler\src" />
+          <option name="outputDir" value="$PROJECT_DIR$/src" />
           <option name="libDir" value="" />
           <option name="encoding" value="" />
           <option name="pkg" value="" />
