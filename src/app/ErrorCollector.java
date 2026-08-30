@@ -8,12 +8,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Collects lexical and syntax errors instead of letting ANTLR print them to
- * stderr and vanish. Attaching this to every lexer and parser means one run can
- * report which source file each error came from, and the compiler can decide
- * whether later stages are still worth running.
- */
 public class ErrorCollector extends BaseErrorListener {
 
     private final String source;

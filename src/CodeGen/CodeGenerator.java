@@ -12,21 +12,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Writes a runnable Flask project out of the compiled abstract syntax trees.
- *
- * <p>The three generators emit into the layout Flask expects, so the parts work
- * together once written:
- *
- * <pre>
- *   &lt;outputDir&gt;/app.py
- *   &lt;outputDir&gt;/templates/&lt;name&gt;.html
- *   &lt;outputDir&gt;/static/&lt;name&gt;.css
- * </pre>
- *
- * <p>Everything is written as UTF-8 - the templates carry Arabic text that must
- * survive the round trip.
- */
 public class CodeGenerator {
 
     private static final String TEMPLATES_DIR = "templates";
@@ -41,29 +26,23 @@ public class CodeGenerator {
         this.outputDir = outputDir == null ? Path.of(".") : outputDir;
     }
 
-    /** Emits {@code app.py} from the Python AST. */
     public void generatePythonApp(ProgramNode program) throws IOException {
         write(outputDir.resolve(APP_FILE), PythonEmitter.emit(program));
     }
 
-    /** Emits {@code templates/<name>} from a template AST. {@code name} is like "products.html". */
     public void generateTemplate(String name, TemplateFileNode template) throws IOException {
         String fileName = safeName(name, "template.html");
         write(outputDir.resolve(TEMPLATES_DIR).resolve(fileName), TemplateEmitter.emit(template));
     }
 
-    /** Emits {@code static/style.css} from a CSS AST. */
     public void generateStylesheet(String name, CssFileNode css) throws IOException {
         String fileName = safeName(name, DEFAULT_STYLESHEET);
         write(outputDir.resolve(STATIC_DIR).resolve(fileName), CssEmitter.emit(css));
     }
 
-    /** Files written so far, in order, for reporting. */
     public List<String> getGeneratedFiles() {
         return Collections.unmodifiableList(generatedFiles);
     }
-
-    // ---------------------------------------------------------------- helpers
 
     private void write(Path target, String content) throws IOException {
         Path parent = target.getParent();
@@ -72,10 +51,6 @@ public class CodeGenerator {
         generatedFiles.add(target.toString());
     }
 
-    /**
-     * Keeps a caller-supplied name from escaping the output directory: only the
-     * final path element is used, and an empty name falls back to the default.
-     */
     private String safeName(String name, String fallback) {
         if (name == null || name.isBlank()) return fallback;
 

@@ -9,14 +9,12 @@ import java.util.Map;
 public class TemplateFileNode extends TemplateNode {
     private final List<TemplateItemNode> items = new ArrayList<>();
 
-    /** Context values the generator carried over from the Python tree. */
     private final Map<String, BoundDataNode> bindings = new LinkedHashMap<>();
 
     public TemplateFileNode(int line) {
         super("TemplateFile", line);
     }
 
-    /** Attaches one context value from the Python side to this template. */
     public void bindContext(BoundDataNode binding) {
         if (binding == null) return;
         bindings.put(binding.getName(), binding);

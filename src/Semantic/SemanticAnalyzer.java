@@ -17,13 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Checks meaning rather than shape, across both halves of the project.
- *
- * <p>Twelve checks run: six over the Python application, six over the templates
- * and the links between the two. Every diagnostic is collected, so one run
- * reports the whole picture instead of stopping at the first problem.
- */
 public class SemanticAnalyzer {
 
     private final List<SemanticError> errors = new ArrayList<>();
@@ -31,13 +24,10 @@ public class SemanticAnalyzer {
     private final FlaskModel model;
     private final String pythonSource;
 
-    /** Logical template name ("products.html") to its parsed tree. */
     private final Map<String, TemplateFileNode> templates = new LinkedHashMap<>();
 
-    /** Logical template name to the context variables it uses, and where. */
     private final Map<String, Map<String, Integer>> templateContext = new LinkedHashMap<>();
 
-    /** Logical template name to the source file it came from, for error messages. */
     private final Map<String, String> templateSources = new HashMap<>();
 
     private static final Set<String> PYTHON_BUILTINS = new HashSet<>(Arrays.asList(
@@ -95,11 +85,6 @@ public class SemanticAnalyzer {
         return Collections.unmodifiableList(errors);
     }
 
-    // =====================================================================
-    // Python side
-    // =====================================================================
-
-    /** SEM01 — a name is read that was never imported, assigned, or declared. */
     private void checkUndefinedNames(AstNode node) {
         if (node == null) return;
 
@@ -113,7 +98,6 @@ public class SemanticAnalyzer {
         for (AstNode c : node.getChildren()) checkUndefinedNames(c);
     }
 
-    /** SEM02 — two functions in the same module share a name. */
     private void checkDuplicateFunctions() {
         Map<String, Integer> seen = new HashMap<>();
         for (FunctionNode fn : model.getFunctions()) {
@@ -128,7 +112,6 @@ public class SemanticAnalyzer {
         }
     }
 
-    /** SEM03 — two routes claim the same URL, so one can never be reached. */
     private void checkDuplicateRoutes() {
         Map<String, RouteInfo> seen = new HashMap<>();
         for (RouteInfo r : model.getRoutes()) {
@@ -145,7 +128,6 @@ public class SemanticAnalyzer {
         }
     }
 
-    /** SEM04 — the URL declares parameters the view function does not accept. */
     private void checkRouteParameters() {
         for (RouteInfo r : model.getRoutes()) {
             List<String> urlParams = r.getUrlParams();
@@ -169,7 +151,6 @@ public class SemanticAnalyzer {
         }
     }
 
-    /** SEM05 — render_template names a template that is not in the project. */
     private void checkRenderedTemplatesExist() {
         for (RouteInfo r : model.getRoutes()) {
             String t = r.getRenderedTemplate();
@@ -181,7 +162,6 @@ public class SemanticAnalyzer {
         }
     }
 
-    /** SEM06 — a locally defined function is called with the wrong argument count. */
     private void checkCallArgumentCounts() {
         Map<String, FunctionNode> byName = new HashMap<>();
         for (FunctionNode fn : model.getFunctions()) byName.putIfAbsent(fn.name, fn);
@@ -199,15 +179,6 @@ public class SemanticAnalyzer {
         }
     }
 
-    // =====================================================================
-    // Template side, and the link between the two halves
-    // =====================================================================
-
-    /**
-     * SEM07 — a template reads a variable that its route never passes.
-     * Variables provided by an ancestor template through {% extends %} count as
-     * supplied, since the child renders inside the parent's context.
-     */
     private void checkTemplateContextProvided() {
         for (Map.Entry<String, Map<String, Integer>> entry : templateContext.entrySet()) {
             String templateName = entry.getKey();
@@ -228,7 +199,6 @@ public class SemanticAnalyzer {
         }
     }
 
-    /** SEM08 — {% extends %} points at a template that does not exist. */
     private void checkExtendsTargets() {
         for (Map.Entry<String, TemplateFileNode> e : templates.entrySet()) {
             String source = templateSources.getOrDefault(e.getKey(), e.getKey());
@@ -242,7 +212,6 @@ public class SemanticAnalyzer {
         }
     }
 
-    /** SEM09 — a child overrides a block the parent template never declares. */
     private void checkBlocksDeclaredInParent() {
         for (Map.Entry<String, TemplateFileNode> e : templates.entrySet()) {
             List<ExtendsNode> extendsNodes = findAll(e.getValue(), ExtendsNode.class);
@@ -250,7 +219,7 @@ public class SemanticAnalyzer {
 
             String parentName = extendsNodes.get(0).getTemplateName();
             TemplateFileNode parent = templates.get(parentName);
-            if (parent == null) continue; // already reported by SEM08
+            if (parent == null) continue;
 
             Set<String> parentBlocks = new LinkedHashSet<>();
             for (BlockNode b : findAll(parent, BlockNode.class)) parentBlocks.add(b.getBlockName());
@@ -267,7 +236,6 @@ public class SemanticAnalyzer {
         }
     }
 
-    /** SEM10 — a filter is applied that Jinja2 does not define. */
     private void checkKnownFilters() {
         for (Map.Entry<String, TemplateFileNode> e : templates.entrySet()) {
             String source = templateSources.getOrDefault(e.getKey(), e.getKey());
@@ -280,7 +248,6 @@ public class SemanticAnalyzer {
         }
     }
 
-    /** SEM11 (warning) — a route passes context the template never reads. */
     private void checkUnusedContext() {
         for (RouteInfo r : model.getRoutes()) {
             String t = r.getRenderedTemplate();
@@ -297,7 +264,6 @@ public class SemanticAnalyzer {
         }
     }
 
-    /** SEM12 (warning) — a template no route renders and no template extends. */
     private void checkOrphanTemplates() {
         Set<String> extended = new HashSet<>();
         for (TemplateFileNode t : templates.values()) {
@@ -313,9 +279,6 @@ public class SemanticAnalyzer {
         }
     }
 
-    // ---------------------------------------------------------------- helpers
-
-    /** Every node of the given type in the subtree, in document order. */
     private <T extends AstNode> List<T> findAll(AstNode root, Class<T> type) {
         List<T> out = new ArrayList<>();
         collect(root, type, out);

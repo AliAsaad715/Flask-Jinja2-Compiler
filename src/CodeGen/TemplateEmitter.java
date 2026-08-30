@@ -8,23 +8,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Turns the Jinja2/HTML AST back into template source.
- *
- * <p>Text nodes carry the original whitespace, so nothing is re-indented here -
- * doing so would double up the layout that the text nodes already hold. What is
- * rebuilt is the syntax the parser consumed: tag delimiters, attribute quoting,
- * the {@code {% ... %}} / <code>{{ ... }}</code> wrappers, and the expression
- * text itself.
- */
 final class TemplateEmitter {
 
     private static final Set<String> VOID_TAGS = new HashSet<>(Arrays.asList(
             "img", "input", "br", "hr", "meta", "link", "source",
             "area", "base", "col", "embed", "param", "track", "wbr"));
 
-    // Expression precedence, mirroring the grammar cascade: condExpr is loosest,
-    // primaries are tightest.
     private static final int P_COND = 1;
     private static final int P_OR = 2;
     private static final int P_AND = 3;
@@ -49,12 +38,9 @@ final class TemplateEmitter {
         return emitter.out.toString();
     }
 
-    /** Exposed so callers can round-trip a single expression. */
     static String expressionText(ExprNode expr) {
         return new TemplateEmitter().renderExpr(expr, 0);
     }
-
-    // ------------------------------------------------------------------ items
 
     private void items(List<TemplateItemNode> list) {
         if (list == null) return;
@@ -113,9 +99,6 @@ final class TemplateEmitter {
 
         List<TemplateItemNode> elseBody = node.getElseBody();
 
-        // The builder nests an `{% elif %}` as a lone IfNode in the else branch;
-        // re-emitting that as elif keeps the chain flat instead of piling up
-        // extra {% endif %} markers.
         if (elseBody.size() == 1 && elseBody.get(0) instanceof IfNode) {
             ifNode((IfNode) elseBody.get(0), false);
         } else if (!elseBody.isEmpty()) {
@@ -126,8 +109,6 @@ final class TemplateEmitter {
             out.append("{% endif %}");
         }
 
-        // A nested elif closes the chain with the single endif emitted above by
-        // its own branch, so nothing more is appended here.
     }
 
     private void element(ElementNode node) {
@@ -138,7 +119,6 @@ final class TemplateEmitter {
             open.append(' ').append(attribute(attr));
         }
 
-        // <!DOCTYPE html> and friends: no body, no self-closing slash.
         if (tag != null && tag.startsWith("!")) {
             out.append(open).append('>');
             return;
@@ -156,8 +136,6 @@ final class TemplateEmitter {
 
     private String attribute(AttributeNode attr) {
         List<AttributeValuePartNode> parts = attr.getValueParts();
-        // A valueless attribute (`required`) emits bare; an empty one (`alt=""`)
-        // keeps its quotes, which the AST distinguishes via hasValue().
         if (parts.isEmpty()) return attr.hasValue() ? attr.getName() + "=\"\"" : attr.getName();
 
         StringBuilder value = new StringBuilder();
@@ -180,9 +158,6 @@ final class TemplateEmitter {
         return attr.getName() + "=" + quote + value + quote;
     }
 
-    // ------------------------------------------------------------ expressions
-
-    /** Rebuilds Jinja source text for any expression node. */
     private String renderExpr(ExprNode node, int parentPrecedence) {
         if (node == null) return "";
         String text = renderBare(node);
@@ -263,11 +238,6 @@ final class TemplateEmitter {
         return sb.toString();
     }
 
-    /**
-     * Literals are stored unquoted, and numbers / True / False / None are stored
-     * as plain text alongside the strings, so the quotes have to be put back on
-     * everything that is not one of those bare forms.
-     */
     private String literal(String text) {
         if (text == null) return "''";
         if (text.equals("True") || text.equals("False") || text.equals("None")) return text;

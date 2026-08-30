@@ -10,14 +10,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * A single Flask route, flattened out of the Python AST into the facts the
- * analyser and the data generator both need: which URL it serves, which view
- * function handles it, which template it renders, and what context it passes.
- */
 public class RouteInfo {
 
-    /** Matches Flask URL parameters such as {@code <int:product_id>} or {@code <name>}. */
     private static final Pattern URL_PARAM = Pattern.compile("<(?:([a-zA-Z_]+):)?([a-zA-Z_][a-zA-Z0-9_]*)>");
 
     private final String urlPath;
@@ -28,7 +22,6 @@ public class RouteInfo {
     private String renderedTemplate;
     private int renderLine = -1;
 
-    /** Context key to the Python expression passed for it in render_template(...). */
     private final Map<String, AstNode> context = new LinkedHashMap<>();
 
     public RouteInfo(String urlPath, String functionName, List<String> functionParams, int line) {
@@ -59,7 +52,6 @@ public class RouteInfo {
         return Collections.unmodifiableMap(context);
     }
 
-    /** The parameter names declared in the URL pattern, in order. */
     public List<String> getUrlParams() {
         List<String> out = new ArrayList<>();
         if (urlPath == null) return out;

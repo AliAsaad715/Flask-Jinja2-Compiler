@@ -2,13 +2,6 @@ package AST.template;
 
 import AST.python.AstNode;
 
-/**
- * A context value carried across from the Python tree into the template tree.
- *
- * <p>The Python value node is attached as this node's child, so printing the
- * template AST shows the actual data the view passes in — the data array from
- * app.py appears inside the Jinja tree it feeds.
- */
 public class BoundDataNode extends TemplateNode {
 
     private final String name;

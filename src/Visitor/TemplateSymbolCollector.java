@@ -15,19 +15,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Walks a template AST and builds its symbol table.
- *
- * <p>Anything a template uses but never binds itself is a <em>context variable</em>:
- * a value the Flask view must pass in via {@code render_template}. Those are what
- * the semantic analyser checks against the Python side, and what the data
- * generator fills in.
- */
 public class TemplateSymbolCollector {
 
     private final SymbolTable table = new SymbolTable();
 
-    /** Context variable name to the line where it was first used. */
     private final Map<String, Integer> contextVars = new LinkedHashMap<>();
 
     private static final Set<String> KEYWORDS = new HashSet<>(Arrays.asList(
@@ -35,7 +26,6 @@ public class TemplateSymbolCollector {
             "is", "True", "False", "None", "true", "false", "none"
     ));
 
-    /** Names Jinja and Flask provide, so they are never reported as missing. */
     private static final Set<String> BUILTINS = new HashSet<>(Arrays.asList(
             "url_for", "get_flashed_messages", "config", "request", "session", "g",
             "loop", "range", "len", "int", "float", "str", "list", "dict", "super"
@@ -44,8 +34,6 @@ public class TemplateSymbolCollector {
     public SymbolTable collect(TemplateFileNode file) {
         table.enterScope("Global", file.getLine());
         walk(file);
-        // Defined last, but each keeps the line where it was actually used
-        // rather than the line of the file node.
         for (Map.Entry<String, Integer> e : contextVars.entrySet()) {
             if (table.resolve(e.getKey()) == null) {
                 table.define(e.getKey(), e.getValue(), SymbolKind.CONTEXT);
@@ -55,7 +43,6 @@ public class TemplateSymbolCollector {
         return table;
     }
 
-    /** Context variables the template expects, mapped to their first-use line. */
     public Map<String, Integer> getContextVariables() {
         return Collections.unmodifiableMap(contextVars);
     }
@@ -77,8 +64,6 @@ public class TemplateSymbolCollector {
             for (String v : f.getVarNames()) {
                 table.define(v, f.getLine(), SymbolKind.LOOP_VAR);
             }
-            // The iterable is evaluated in the enclosing scope conceptually, but
-            // resolving it here is harmless: a loop variable never shadows it.
             walk(f.getIterable());
             for (TemplateItemNode item : f.getBody()) walk(item);
             table.exitScope();
@@ -108,9 +93,6 @@ public class TemplateSymbolCollector {
             return;
         }
 
-        // Only a bare name is a variable reference. Attribute names, filter names
-        // and keyword-argument names live in fields rather than children, so the
-        // generic descent below can never mistake them for variables.
         if (node instanceof NameExpr) {
             NameExpr n = (NameExpr) node;
             markIdentifier(n.getName(), n.getLine());

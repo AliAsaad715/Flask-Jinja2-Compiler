@@ -1,6 +1,5 @@
 package AST.template.expr;
 
-/** Slice access: `details[:100]`, `items[1:5]`, `items[2:]`. Either bound may be absent. */
 public class SliceExpr extends ExprNode {
     private final ExprNode target;
     private final ExprNode start;

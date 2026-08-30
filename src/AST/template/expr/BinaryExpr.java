@@ -1,6 +1,5 @@
 package AST.template.expr;
 
-/** An infix operation: arithmetic, comparison, or the word operators and/or/in/is. */
 public class BinaryExpr extends ExprNode {
     private final String op;
     private final ExprNode left;

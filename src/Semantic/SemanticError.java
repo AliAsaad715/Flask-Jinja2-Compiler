@@ -1,11 +1,5 @@
 package Semantic;
 
-/**
- * One diagnostic produced by the semantic analyser.
- *
- * <p>Errors are collected rather than thrown so that a single run reports every
- * problem in the project instead of stopping at the first one.
- */
 public class SemanticError {
 
     public enum Severity { ERROR, WARNING }

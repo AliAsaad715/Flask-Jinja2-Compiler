@@ -13,11 +13,6 @@ public class DecoratedFunctionNode extends AstNode {
         addDecorator(d, d);
     }
 
-    /**
-     * Registers {@code d} as one of this function's decorators while putting
-     * {@code child} in the tree instead - used when a decorator is wrapped in a
-     * more specific node (e.g. a RouteNode for @app.route(...)).
-     */
     public void addDecorator(DecoratorNode d, AstNode child) {
         if (d == null) return;
         decorators.add(d);

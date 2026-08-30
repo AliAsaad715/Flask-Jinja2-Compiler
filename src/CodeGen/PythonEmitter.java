@@ -5,21 +5,10 @@ import AST.python.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Turns the Python AST back into runnable Python source.
- *
- * <p>The AST keeps no parentheses and no source formatting, so the emitter
- * rebuilds both: suites are re-indented with four spaces per level and binary
- * expressions are re-parenthesised from a precedence table, which is what keeps
- * a nested {@code a + b * c} from flattening into something that means
- * something else.
- */
 final class PythonEmitter {
 
     private static final String INDENT_UNIT = "    ";
 
-    // Precedence levels, lowest binds loosest. Atoms sit above every operator so
-    // they are never wrapped.
     private static final int P_OR = 1;
     private static final int P_AND = 2;
     private static final int P_NOT = 3;
@@ -29,7 +18,6 @@ final class PythonEmitter {
     private static final int P_UNARY = 7;
     private static final int P_ATOM = 100;
 
-    /** Precedence demanded of a callee / attribute base / subscript base. */
     private static final int P_POSTFIX_BASE = 90;
 
     private final StringBuilder out = new StringBuilder();
@@ -42,8 +30,6 @@ final class PythonEmitter {
         emitter.program(program);
         return emitter.out.toString();
     }
-
-    // ------------------------------------------------------------- statements
 
     private void program(ProgramNode program) {
         if (program == null) return;
@@ -94,7 +80,6 @@ final class PythonEmitter {
         } else if (node instanceof ProgramNode) {
             for (AstNode child : node.getChildren()) statement(child, level);
         } else {
-            // Any leftover expression node used in statement position.
             line(level, expression(node, level));
         }
     }
@@ -197,9 +182,6 @@ final class PythonEmitter {
         for (AstNode stmt : node.getChildren()) statement(stmt, level);
     }
 
-    // ------------------------------------------------------------ expressions
-
-    /** Renders an expression at statement level - no enclosing operator. */
     private String expression(AstNode node, int level) {
         return render(node, level);
     }
@@ -287,11 +269,9 @@ final class PythonEmitter {
             return "None";
         }
 
-        // Unknown node: fall back to something that still parses.
         return "None";
     }
 
-    /** {@code element for var in iterable if condition} - without the parentheses. */
     private String generatorBody(GeneratorNode node, int level) {
         List<AstNode> kids = node.getChildren();
         String element = kids.size() > 0 ? render(kids.get(0), level) : "None";
@@ -331,7 +311,6 @@ final class PythonEmitter {
         return sb.append(indent(level)).append(close).toString();
     }
 
-    /** A list of dicts (or of lists) reads far better broken over lines. */
     private boolean listWantsBreaks(AstNode list) {
         for (AstNode item : list.getChildren()) {
             boolean nested = item instanceof DictNode || item instanceof ListNode;
@@ -339,8 +318,6 @@ final class PythonEmitter {
         }
         return false;
     }
-
-    // --------------------------------------------------------------- brackets
 
     private String operand(AstNode child, int level, int parentPrecedence, boolean tighterOnRight) {
         String text = render(child, level);
@@ -356,15 +333,13 @@ final class PythonEmitter {
             if ("and".equals(op)) return P_AND;
             if ("+".equals(op) || "-".equals(op)) return P_ADD;
             if ("*".equals(op) || "/".equals(op) || "//".equals(op) || "%".equals(op)) return P_MUL;
-            return P_COMPARE; // ==, !=, <, >, <=, >=, in, not in, is, is not
+            return P_COMPARE;
         }
         if (node instanceof UnaryOpNode) {
             return "not".equals(((UnaryOpNode) node).op) ? P_NOT : P_UNARY;
         }
         return P_ATOM;
     }
-
-    // ---------------------------------------------------------------- helpers
 
     private AstNode firstChild(AstNode node) {
         return node.getChildren().isEmpty() ? null : node.getChildren().get(0);
@@ -378,7 +353,6 @@ final class PythonEmitter {
         return INDENT_UNIT.repeat(Math.max(0, level));
     }
 
-    /** The AST stores string values unquoted, so quoting is re-applied here. */
     static String pythonString(String value) {
         StringBuilder sb = new StringBuilder("'");
         if (value != null) {

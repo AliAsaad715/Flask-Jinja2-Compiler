@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/** A list literal written inside a template expression. */
 public class ListExpr extends ExprNode {
     private final List<ExprNode> items = new ArrayList<>();
 

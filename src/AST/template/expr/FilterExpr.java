@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/** A Jinja filter application: `value | length` or `value | default('n/a')`. */
 public class FilterExpr extends ExprNode {
     private final String filterName;
     private final ExprNode input;

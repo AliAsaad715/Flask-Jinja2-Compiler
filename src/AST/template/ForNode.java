@@ -21,7 +21,6 @@ public class ForNode extends JinjaNode {
         this(line, List.of(varName), iterable);
     }
 
-    /** Every loop variable, so `{% for key, value in mapping %}` binds both. */
     public List<String> getVarNames() {
         return Collections.unmodifiableList(varNames);
     }

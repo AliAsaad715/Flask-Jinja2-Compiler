@@ -1,6 +1,5 @@
 package AST.template.expr;
 
-/** Subscript access: `products[0]`. */
 public class IndexExpr extends ExprNode {
     private final ExprNode target;
     private final ExprNode index;

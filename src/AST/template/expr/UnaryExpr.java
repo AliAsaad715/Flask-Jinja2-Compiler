@@ -1,6 +1,5 @@
 package AST.template.expr;
 
-/** A prefix operation: `not x` or negation `-x`. */
 public class UnaryExpr extends ExprNode {
     private final String op;
     private final ExprNode operand;

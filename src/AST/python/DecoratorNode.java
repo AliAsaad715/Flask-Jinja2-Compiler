@@ -1,7 +1,7 @@
 package AST.python;
 
 public class DecoratorNode extends AstNode {
-    public String objectName; // may be "" if none
+    public String objectName;
     public String methodName;
     public String path;
 
