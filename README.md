@@ -12,11 +12,18 @@ Compilers course project, 2025/2026.
 ```powershell
 .\build.ps1 -Grammar     # regenerate out-of-date ANTLR parsers, then compile
 .\run.ps1                # compile the project in Tests/ and generate the app
+.\watch.ps1              # keep running: recompiles whenever a fixture changes
 ```
 
 The build is incremental: only changed sources are recompiled, and grammar
 pairs are regenerated only when their `.g4` inputs are newer than the parsers
 generated from them. Use `.\build.ps1 -Clean` to force a full rebuild.
+
+`watch.ps1` watches the fixtures in `Tests/` and re-runs the compiler each time
+one is saved (debounced, so one save means one compile). Extra arguments are
+passed through to `run.ps1`, and `-Path` watches a different directory. Watch a
+fixtures directory, not the repo root - writes to `generated/` and `out/` would
+re-trigger the watcher (the script warns when it spots them).
 
 Then run what the compiler produced:
 
