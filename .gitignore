@@ -34,5 +34,7 @@ bin/
 ### VS Code ###
 .vscode/
 
+opencode.json
+
 ### Mac OS ###
 .DS_Store
