@@ -10,9 +10,13 @@ Compilers course project, 2025/2026.
 ## Quick start
 
 ```powershell
-.\build.ps1 -Grammar     # regenerate the ANTLR parsers, then compile
+.\build.ps1 -Grammar     # regenerate out-of-date ANTLR parsers, then compile
 .\run.ps1                # compile the project in Tests/ and generate the app
 ```
+
+The build is incremental: only changed sources are recompiled, and grammar
+pairs are regenerated only when their `.g4` inputs are newer than the parsers
+generated from them. Use `.\build.ps1 -Clean` to force a full rebuild.
 
 Then run what the compiler produced:
 
