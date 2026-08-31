@@ -106,7 +106,7 @@ public class Main {
 
         FlaskModel model = FlaskModel.from(program);
 
-        System.out.println("\n=== 2. GENERATOR — passing data from the Python tree into the Jinja tree ===\n");
+        System.out.println("\n=== 2. GENERATOR - passing data from the Python tree into the Jinja tree ===\n");
         DataGenerator generator = new DataGenerator(model);
         int transferred = generator.generate(templates);
         if (generator.getTransferLog().isEmpty()) {

@@ -92,7 +92,7 @@ public class SemanticAnalyzer {
             IdentifierNode id = (IdentifierNode) node;
             if (id.symbol == null && !PYTHON_BUILTINS.contains(id.name)) {
                 errors.add(SemanticError.error("SEM01", pythonSource, id.line,
-                        "Undefined name '" + id.name + "' — it is never imported, assigned, or declared."));
+                        "Undefined name '" + id.name + "' - it is never imported, assigned, or declared."));
             }
         }
         for (AstNode c : node.getChildren()) checkUndefinedNames(c);
@@ -105,7 +105,7 @@ public class SemanticAnalyzer {
             if (first != null) {
                 errors.add(SemanticError.error("SEM02", pythonSource, fn.line,
                         "Duplicate definition of function '" + fn.name
-                                + "' — already defined at line " + first + "."));
+                                + "' - already defined at line " + first + "."));
             } else {
                 seen.put(fn.name, fn.line);
             }
@@ -120,7 +120,7 @@ public class SemanticAnalyzer {
             if (first != null) {
                 errors.add(SemanticError.error("SEM03", pythonSource, r.getLine(),
                         "Duplicate route '" + r.getUrlPath() + "' on '" + r.getFunctionName()
-                                + "' — already handled by '" + first.getFunctionName()
+                                + "' - already handled by '" + first.getFunctionName()
                                 + "' at line " + first.getLine() + "."));
             } else {
                 seen.put(r.getUrlPath(), r);

@@ -28,13 +28,13 @@ public abstract class AstNode {
 
     public void prettyInto(StringBuilder sb, String indent, boolean last) {
         sb.append(indent);
-        sb.append(last ? "└── " : "├── ");
+        sb.append(last ? "`-- " : "|-- ");
         sb.append(nodeName).append(" (line ").append(line).append(")");
         String d = describe();
         if (d != null && !d.isBlank()) sb.append(" : ").append(d);
         sb.append("\n");
 
-        String childIndent = indent + (last ? "    " : "│   ");
+        String childIndent = indent + (last ? "    " : "|   ");
         for (int i = 0; i < children.size(); i++) {
             children.get(i).prettyInto(sb, childIndent, i == children.size() - 1);
         }
@@ -92,7 +92,7 @@ public abstract class AstNode {
         sb.append(header()).append("\n");
         for (int i = 0; i < children.size(); i++) {
             AstNode c = children.get(i);
-            sb.append(i == children.size() - 1 ? "└── " : "├── ")
+            sb.append(i == children.size() - 1 ? "`-- " : "|-- ")
               .append(c.header())
               .append("\n");
         }

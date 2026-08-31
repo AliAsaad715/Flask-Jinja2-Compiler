@@ -110,7 +110,7 @@ AstNode  (abstract — nodeName, line, children)
 
 Three printers, all driven by the same `describe()` override:
 
-- `pretty()` — the whole tree as a box-drawing diagram
+- `pretty()` — the whole tree as an ASCII tree diagram
 - `printTree()` — the whole tree as an indented class listing
 - `printNode()` — one node and its immediate children (`--nodes`)
 
