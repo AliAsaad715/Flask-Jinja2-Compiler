@@ -25,4 +25,16 @@ if (-not (Test-Path out/app/Main.class)) {
     & "$PSScriptRoot/build.ps1"
 }
 
-& $Java -cp "out;lib/antlr-4.13.2-complete.jar" app.Main @args
+# Main writes UTF-8 bytes to stdout. A console left on the legacy code page
+# (437/1252) decodes them as mojibake - the Arabic strings in the fixtures come
+# out as gibberish. Switch the console to UTF-8 for the run and put the old
+# code page back afterwards, so the shell is left as it was found.
+$previousEncoding = [Console]::OutputEncoding
+try {
+    [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false
+    # Quoted: PowerShell 5.1 splits a bare -Dfile.encoding=UTF-8 at the dot.
+    & $Java '-Dfile.encoding=UTF-8' '-Dstdout.encoding=UTF-8' '-Dstderr.encoding=UTF-8' `
+        -cp "out;lib/antlr-4.13.2-complete.jar" app.Main @args
+} finally {
+    [Console]::OutputEncoding = $previousEncoding
+}
